@@ -1,0 +1,67 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ main, ]
+  pull_request:
+    branches: [ main, ]
+  workflow_dispatch:
+    branches: [ main, ]
+
+jobs:
+
+  CI:
+    runs-on: [self-hosted]
+
+    steps:
+
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.10.13
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10.13'
+
+    - name: Checkout this Repo
+      uses: actions/checkout@v4
+      with:
+        path: BG-Trees
+
+    - name: Make CUDA discoverable
+      run: |
+        export CPATH="/usr/include/python3.10:${CPATH}"
+        export CPATH="/home/docker/actions-runner/_work/_tool/Python/3.10.13/x64:${CPATH}"
+        export PATH="/usr/local/cuda-12.2/bin:${PATH}"
+        export LD_LIBRARY_PATH="/usr/local/cuda-12.2/lib64:${LD_LIBRARY_PATH}"
+        echo "$PATH" && echo "$LD_LIBRARY_PATH" && nvcc --version && nvidia-smi
+        ls /usr/include/python3.10
+        ls /home/docker/actions-runner/_work/_tool/Python/3.10.13/x64
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest pytest-cov
+        pip install tensorflow[and-cuda]
+        pip install -e BG-Trees
+
+    - name: Lint with flake8
+      run: |
+        cd BG-Trees
+        flake8 bgtrees/ --count --max-line-length=190 --statistics --verbose
+
+    - name: Test with pytest
+      run: |
+        cd BG-Trees
+        pytest |& tee coverage.txt
+
+    - name: Run update-badges script
+      run: |
+        cd BG-Trees
+        python update-badges.py
+
+    - name: Update badges and commit README.md
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        file_pattern: README.md
+        repository: BG-Trees
+        commit_message: "Automatic badge update"

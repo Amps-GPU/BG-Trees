@@ -2,7 +2,7 @@ import tensorflow
 import numpy
 
 from bgtrees.settings import settings
-from bgtrees.metric_and_verticies import MinkowskiMetric, V4g, V3g
+from bgtrees.metric_and_verticies import MinkowskiMetric, V3g
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -15,8 +15,8 @@ def test_MinkowskiMetric_cpu_vs_gpu():
     metric_cpu = MinkowskiMetric(5)
     # dtypes
     assert metric_gpu.dtype is tensorflow.int64
-    assert not metric_gpu.dtype is numpy.dtype('int64')
-    assert not metric_cpu.dtype is tensorflow.int64
+    assert metric_gpu.dtype is not numpy.dtype('int64')
+    assert metric_cpu.dtype is not tensorflow.int64
     assert metric_cpu.dtype is numpy.dtype('int64')
     # values
     assert numpy.isclose(metric_gpu, metric_cpu).all()

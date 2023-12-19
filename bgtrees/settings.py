@@ -5,4 +5,5 @@ class Settings(object):
         self.use_gpu = True
         self.D = 4
 
+
 settings = Settings()
