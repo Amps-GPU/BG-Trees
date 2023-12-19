@@ -14,10 +14,10 @@ def test_MinkowskiMetric_cpu_vs_gpu():
     settings.use_gpu = False
     metric_cpu = MinkowskiMetric(5)
     # dtypes
-    assert metric_gpu.dtype is tensorflow.int64
-    assert metric_gpu.dtype is not numpy.dtype('int64')
-    assert metric_cpu.dtype is not tensorflow.int64
-    assert metric_cpu.dtype is numpy.dtype('int64')
+    assert isinstance(metric_gpu.dtype, tensorflow.dtypes.DType)
+    assert not isinstance(metric_gpu.dtype, numpy.dtype)
+    assert not isinstance(metric_cpu.dtype, tensorflow.dtypes.DType)
+    assert isinstance(metric_cpu.dtype, numpy.dtype)
     # values
     assert numpy.isclose(metric_gpu, metric_cpu).all()
 
@@ -28,4 +28,10 @@ def test_V3g_cpu_vs_gpu():
     V3g_gpu = V3g(p1, p2)
     settings.use_gpu = False
     V3g_cpu = V3g(p1, p2)
+    # dtype
+    assert isinstance(V3g_gpu.dtype, tensorflow.dtypes.DType)
+    assert not isinstance(V3g_gpu.dtype, numpy.dtype)
+    assert not isinstance(V3g_cpu.dtype, tensorflow.dtypes.DType)
+    assert isinstance(V3g_cpu.dtype, numpy.dtype)
+    # values
     assert numpy.isclose(V3g_cpu, V3g_gpu).all()
