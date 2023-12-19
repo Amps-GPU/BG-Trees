@@ -1,0 +1,11 @@
+*.pyc
+__pycache__
+.*
+*~
+!.hidden
+*.egg-info/
+dist/
+venv/
+htmlcov/
+*.pickle
+dev/
