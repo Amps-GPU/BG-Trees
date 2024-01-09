@@ -1,0 +1,32 @@
+// kernel_example.h taken from tensorflow custom op repository
+#ifndef KERNEL_dot_product_H_
+#define KERNEL_dot_product_H_
+
+#define PMOD 2147483629
+
+namespace tensorflow {
+
+    namespace functor {
+
+        template <typename Device, typename T>
+            struct DotProductFunctor {
+                // Dot product A_{rji}B^{jk}_{r} = C_{rj}^{k}
+                // ie, \sum_{i} A_{rji}*B_{rjk} = C_{rjk}
+                // the index r is the batch index and is the index along which the vectorization happen
+                void operator()(const Device& d, 
+                        const int batch_size, // size of the vectorized dimensioned
+                        const int size_j, // size of the uncontracted first index of input X
+                        const int size_k, // size of the uncontracted last index of input Y
+                        const int size_i, // contracted index
+                        const T* x, // input tensor X
+                        const T* y, // input tensor Y
+                        T* out      // output tensor
+                );
+            };
+
+
+    }  // namespace functor
+
+}  // namespace tensorflow
+
+#endif //KERNEL_dot_product_H_

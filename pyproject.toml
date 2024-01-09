@@ -1,5 +1,5 @@
 [build-system]
-requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.1.0"]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.1.0"] #, "tensorflow[and-cuda]"]
 build-backend = "poetry_dynamic_versioning.backend"
 
 [tool.poetry]
@@ -24,6 +24,10 @@ repository = "https://github.com/Amps-GPU/BG-Trees/tree/main"
 packages = [
     { include = "bgtrees" },
 ]
+include = [
+    # The following files are created automaticall by `build.py`
+    "bgtrees/finite_gpufields/cuda_operators/*.so"
+    ]
 
 [tool.poetry.dependencies] 
 python = "^3.9"
@@ -53,6 +57,12 @@ __version__ = "0.0.0"
 
 [tool.poetry-dynamic-versioning.substitution]
 files = ["bgtrees/_version.py"]
+
+# This is an undocumented/unsupported feature of poetry, so fingers crossed
+[tool.poetry.build]
+generate-setup-file = false
+script = "build.py"
+
 
 [tool.black]
 line-length = 100
