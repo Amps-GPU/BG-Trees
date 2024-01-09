@@ -9,3 +9,4 @@ venv/
 htmlcov/
 *.pickle
 dev/
+_version.py
