@@ -24,8 +24,6 @@ jobs:
 
     - name: Checkout this Repo
       uses: actions/checkout@v4
-      with:
-        path: BG-Trees
 
     - name: Make CUDA discoverable
       run: |
@@ -39,22 +37,19 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install BG-Trees[tests]
+        pip install -e .[tests]
         pip install flake8
 
     - name: Lint with flake8
       run: |
-        cd BG-Trees
         flake8 bgtrees/ --count --max-line-length=190 --statistics --verbose
 
     - name: Test with pytest
       run: |
-        cd BG-Trees
         pytest |& tee coverage.txt
 
     - name: Run update-badges script
       run: |
-        cd BG-Trees
         python update-badges.py
 
     - name: Update badges and commit README.md
