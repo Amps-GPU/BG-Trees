@@ -38,11 +38,11 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -e .[tests]
-        pip install flake8
+        pip install flake8, pyproject-flake8
 
     - name: Lint with flake8
       run: |
-        flake8 bgtrees/ --count --max-line-length=190 --statistics --verbose
+        pflake8 bgtrees/ --count --statistics --verbose
 
     - name: Test with pytest
       run: |

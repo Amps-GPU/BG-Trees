@@ -63,15 +63,18 @@ files = ["bgtrees/_version.py"]
 generate-setup-file = false
 script = "build.py"
 
+[tool.flake8]
+ignore = ["E741", "W504", "W503"]
+max-line-length = 120
 
 [tool.black]
-line-length = 100
+line-length = 120
 skip-string-normalization = 1
 skip_magic_trailing_comma = true
 
 [tool.isort]
 atomic = true
-line_length = 100
+line_length = 120
 profile = "black" # https://black.readthedocs.io/en/stable/guides/using_black_with_other_tools.html#custom-configuration
 skip_gitignore = true
 known_first_party = ["bgtrees"]
