@@ -21,13 +21,13 @@ CXFLAGS+=$(KERNEL_DEF) -L$(NCCLIB) -lcudart
 run: $(target_lib)
 	@CUDA_VISIBLE_DEVICES=0 python py_dotproduct.py
 
-%.so: %_op.cpp %.cuo %.o
-	@echo "[$(CXX)] Linking operation"
+%.so: %_op.cpp %.cuo %.cpp
+	@echo "[$(CXX)] Compiling and linking operation"
 	@$(CXX) $(CXFLAGS) $(KERNEL) -o $@ $^ $(TF_CFLAGS) $(TF_LFLAGS)
 
-%.o: %.cpp %.h
-	@echo "[$(CXX)] Compiling C++ kernel..."
-	@$(CXX) $(CXFLAGS) $(KERNEL) -o $@ $< $(TF_CFLAGS)
+# %.o: %.cpp %.h
+# 	@echo "[$(CXX)] Compiling C++ kernel..."
+# 	@$(CXX) $(CXFLAGS) $(KERNEL) -o $@ $< $(TF_CFLAGS)
 
 %.cuo: %.cu
 	@echo "[$(NCC)] Compiling cuda kernel..."

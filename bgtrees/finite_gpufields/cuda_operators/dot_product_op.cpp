@@ -1,11 +1,11 @@
 // This file defines the abstract operation
-// This includes any attributes (for instance, this operation will act on int32 or int64)
-// the inputs (which are tensors, of any shape, of the type defined by T) and the outputs
+// This includes any attributes (for instance, this operation will act on int32
+// or int64) the inputs (which are tensors, of any shape, of the type defined by
+// T) and the outputs
 
 #include "tensorflow/core/framework/op.h"
 #include "tensorflow/core/framework/shape_inference.h"
-
-using namespace tensorflow;
+#include "dot_product.h"
 
 REGISTER_OP("DotProduct")
 .Attr("T: {int32, int64}")
