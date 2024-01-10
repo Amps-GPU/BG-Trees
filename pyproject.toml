@@ -1,10 +1,10 @@
 [build-system]
-requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.1.0"] #, "tensorflow[and-cuda]"]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.1.0", "tensorflow[and-cuda]"]
 build-backend = "poetry_dynamic_versioning.backend"
 
 [tool.poetry]
 name = "bgtrees"
-version = "0.0.0"
+version = "0.0.0.post16.dev0+0cd5beb.dirty"
 description = "Berends-Giele Recursion for Trees on the GPU using Finite Fields"
 readme = "README.md"
 authors = [
@@ -48,7 +48,7 @@ tests = ["pytest", "galois", "pyadic", "pytest-cov"]
 notebooks = ["jupyterlab", "lips"]
 
 [tool.poetry-dynamic-versioning]
-enable = true
+enable = false
 vcs = "git"
 metadata = true
 dirty = true
