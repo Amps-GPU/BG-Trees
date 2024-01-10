@@ -25,8 +25,10 @@ packages = [
     { include = "bgtrees" },
 ]
 include = [
+    # Files ignored by .gitignore need to be explicitly installed
     # The following files are created automaticall by `build.py`
-    "bgtrees/finite_gpufields/cuda_operators/*.so"
+    "bgtrees/finite_gpufields/cuda_operators/*.so",
+    "bgtrees/_version.py"
     ]
 
 [tool.poetry.dependencies] 
@@ -37,9 +39,13 @@ galois = {version = "*", optional=true}
 pytest = {version = "*", optional=true}
 pytest-cov = {version = "*", optional=true}
 pyadic = {version = "*", optional=true}
+# For notebooks
+lips = {version = "*", optional=true}
+jupyterlab = {version = "*", optional=true}
 
 [tool.poetry.extras]
 tests = ["pytest", "galois", "pyadic", "pytest-cov"]
+notebooks = ["jupyterlab", "lips"]
 
 [tool.poetry-dynamic-versioning]
 enable = true
