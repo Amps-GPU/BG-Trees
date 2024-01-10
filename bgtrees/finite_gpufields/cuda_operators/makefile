@@ -25,10 +25,6 @@ run: $(target_lib)
 	@echo "[$(CXX)] Compiling and linking operation"
 	@$(CXX) $(CXFLAGS) $(KERNEL) -o $@ $^ $(TF_CFLAGS) $(TF_LFLAGS)
 
-# %.o: %.cpp %.h
-# 	@echo "[$(CXX)] Compiling C++ kernel..."
-# 	@$(CXX) $(CXFLAGS) $(KERNEL) -o $@ $< $(TF_CFLAGS)
-
 %.cuo: %.cu
 	@echo "[$(NCC)] Compiling cuda kernel..."
 	@$(NCC) $(NCCFLAGS) -c -o $@ $^ $(TF_CFLAGS)
