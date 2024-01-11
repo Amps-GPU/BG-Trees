@@ -37,7 +37,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install -e .[tests]
+        pip install .[tests]
         pip install flake8 pyproject-flake8
 
     - name: Lint with flake8
