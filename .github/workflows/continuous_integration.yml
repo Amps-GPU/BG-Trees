@@ -47,11 +47,9 @@ jobs:
     - name: Test with pytest
       run: |
         pytest |& tee coverage.txt
-
-    - name: Check pytest exit code
-      run: |
-        if [ "$?" -ne 0 ]; then
-          echo "pytest failed with exit code $?"
+        PYTEST_EXIT_CODE=${PIPESTATUS[0]}
+        if [ "$PYTEST_EXIT_CODE" -ne 0 ]; then
+          echo "pytest failed with exit code $PYTEST_EXIT_CODE"
           exit 1
         else
           echo "pytest passed with exit code 0"
