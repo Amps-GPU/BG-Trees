@@ -47,13 +47,11 @@ jobs:
     - name: Test with pytest
       run: |
         pytest |& tee coverage.txt
-        env:
-          PYTEST_EXIT_CODE: $?
 
     - name: Check pytest exit code
       run: |
-        if [ "$PYTEST_EXIT_CODE" -ne 0 ]; then
-          echo "pytest failed with exit code $PYTEST_EXIT_CODE"
+        if [ "$?" -ne 0 ]; then
+          echo "pytest failed with exit code $?"
           exit 1
         fi
 
