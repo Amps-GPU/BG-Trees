@@ -53,6 +53,8 @@ jobs:
         if [ "$?" -ne 0 ]; then
           echo "pytest failed with exit code $?"
           exit 1
+        else
+          echo "pytest passed with exit code 0"
         fi
 
     - name: Run update-badges script
