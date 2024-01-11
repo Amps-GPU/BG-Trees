@@ -13,7 +13,7 @@ def fake_cuda(op_name):
     (CUDA_FOLDER / f"{op_name}.cuo").write_text("")
 
 
-def cuda_compile():
+def operator_compilation():
     """Try to compile the cuda kernels before installation
     Note, these commands will all fail silently
     """
@@ -24,7 +24,7 @@ def cuda_compile():
 
     # Check whether nvcc is available
     nvcc_available = shutil.which("nvcc") is not None
-    tf_cuda = tf.test.is_gpu_available()
+    tf_cuda = tf.test.is_built_with_cuda()
     if nvcc_available and tf_cuda:
         kerdef = "KERNEL_DEF='-D GOOGLE_CUDA=1'"
     else:
@@ -39,4 +39,4 @@ def cuda_compile():
 
 
 if __name__ == "__main__":
-    cuda_compile()
+    operator_compilation()
