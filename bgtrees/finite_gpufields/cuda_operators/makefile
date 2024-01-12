@@ -7,7 +7,7 @@ CXX=g++
 CXFLAGS=-std=c++17 -shared -fPIC -O3 -ffast-math
 KERNEL_DEF=-D GOOGLE_CUDA=1
 # warnings are disabled because most of them are coming from tensorflow itself...
-NCCFLAGS=-std=c++17 $(KERNEL_DEF) -x cu -Xcompiler -fPIC --disable-warnings --expt-relaxed-constexpr 
+NCCFLAGS=-std=c++17 -I$(subst bin/nvcc,include,$(shell which nvcc)) $(KERNEL_DEF) -x cu -Xcompiler -fPIC --disable-warnings --expt-relaxed-constexpr 
 NCC:=nvcc
 NCCLIB:=$(subst bin/nvcc,lib64, $(shell which nvcc))
 
