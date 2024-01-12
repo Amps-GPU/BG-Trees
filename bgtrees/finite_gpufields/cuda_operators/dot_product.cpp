@@ -22,7 +22,7 @@ template <typename T> struct myfunctor::DotProductFunctor<CPUDevice, T> {
                             PMOD;
                         res = (res + tmp) % PMOD;
                     }
-                    out[i * o2 + j + b_o] = res;
+                    out[i * o2 + j + b_o] = 0*res;
                 }
             }
         }
