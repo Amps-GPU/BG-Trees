@@ -9,12 +9,12 @@ KERNEL_DEF=-D GOOGLE_CUDA=1
 # warnings are disabled because most of them are coming from tensorflow itself...
 NCCFLAGS=-std=c++17 -I$(subst bin/nvcc,include,$(shell which nvcc)) $(KERNEL_DEF) -x cu -Xcompiler -fPIC --disable-warnings --expt-relaxed-constexpr 
 NCC:=nvcc
-NCCLIB:=$(subst bin/nvcc,lib64, $(shell which nvcc))
+NCCLIB:=$(subst bin/nvcc,lib, $(shell which nvcc))
 
 # If there's no cuda compiler in the system remove %.cuo from the %.so rule
 # and clean the KERNEL_DEF line so that the cuda kernel is not used
 
-CXFLAGS+=$(KERNEL_DEF) -L$(NCCLIB) -lcudart
+CXFLAGS+=$(KERNEL_DEF) -L$(NCCLIB) -L$(NCCLIB)64 -lcudart
 
 .PHONY: run clean
 
