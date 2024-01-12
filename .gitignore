@@ -9,3 +9,10 @@ venv/
 htmlcov/
 *.pickle
 dev/
+_version.py
+
+# Cuda compilation
+*.cuo
+*.o
+*.so
+coverage.txt

@@ -1,8 +1,8 @@
-import tensorflow
 import numpy
+import tensorflow
 
-from bgtrees.settings import settings
 from bgtrees.metric_and_verticies import MinkowskiMetric, V3g
+from bgtrees.settings import settings
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
