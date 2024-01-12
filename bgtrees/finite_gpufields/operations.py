@@ -1,7 +1,7 @@
 from collections import Counter
 
-from cuda_operators import wrapper_dot_product
-from finite_fields_tf import FiniteField
+from .cuda_operators import wrapper_dot_product
+from .finite_fields_tf import FiniteField
 import tensorflow as tf
 
 

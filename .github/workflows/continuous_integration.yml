@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main, ]
   pull_request:
-    branches: [ main, ]
+    branches: [ '*', ]
   workflow_dispatch:
     branches: [ main, ]
 
@@ -37,7 +37,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install -e .[tests]
+        pip install .[tests]
         pip install flake8 pyproject-flake8
 
     - name: Lint with flake8
@@ -47,6 +47,13 @@ jobs:
     - name: Test with pytest
       run: |
         pytest |& tee coverage.txt
+        PYTEST_EXIT_CODE=${PIPESTATUS[0]}
+        if [ "$PYTEST_EXIT_CODE" -ne 0 ]; then
+          echo "pytest failed with exit code $PYTEST_EXIT_CODE"
+          exit 1
+        else
+          echo "pytest passed with exit code 0"
+        fi
 
     - name: Run update-badges script
       run: |
