@@ -3,11 +3,16 @@
 """
 
 import numpy as np
+import pytest
 from pyadic.finite_field import ModP
 
 from bgtrees.finite_gpufields import FiniteField
 from bgtrees.finite_gpufields.finite_fields_tf import oinsum
-from bgtrees.finite_gpufields.operations import ff_dot_product, ff_index_permutation
+from bgtrees.finite_gpufields.operations import (
+    ff_dot_product,
+    ff_index_permutation,
+    ff_tensor_product,
+)
 
 # p-value for tests
 p = 2**31 - 19
@@ -30,7 +35,10 @@ def _array_to_pyadic(r):
             clist.append(_array_to_pyadic(i).tolist())
     else:
         clist.append(ModP(r, p))
-    return np.array(clist).squeeze()
+
+    ret = np.array(clist)
+    # Ensure that the output shape is equal to the input
+    return ret.reshape(r.shape)
 
 
 def compare(tfff, pyff):
@@ -96,3 +104,35 @@ def test_einsum_permutation():
     np_res = _array_to_pyadic(np.einsum(ein_str, np1))
     ff_res = ff_index_permutation(ein_str, ff1)
     compare(ff_res, np_res)
+
+
+def test_einsum_tensorproduct():
+    """Test a tensor product between two arrays which can or not be batched"""
+    np1, ff1 = _create_example(shape=(7, 1))
+    np2, ff2 = _create_example(shape=(2, 5, 6))
+    np3, ff3 = _create_example(shape=(NBATCH, 1, 4))
+    np4, ff4 = _create_example(shape=(NBATCH, 9))
+
+    # Unbatched - unbatched
+    ein_str = "ij,klm->ijklm"
+    np_res1 = _array_to_pyadic(np.einsum(ein_str, np1, np2))
+    ff_res1 = ff_tensor_product(ein_str, ff1, ff2)
+    compare(np_res1, ff_res1)
+
+    # Batched - unbatched
+    ein_str = "ij,rlm->rijlm"
+    np_res2 = _array_to_pyadic(np.einsum(ein_str, np1, np3))
+    ff_res2 = ff_tensor_product(ein_str, ff1, ff3)
+    compare(np_res2, ff_res2)
+
+    # Batched - batched
+    ein_str = "rij,rk->rijk"
+    np_res3 = _array_to_pyadic(np.einsum(ein_str, np3, np4))
+    ff_res3 = ff_tensor_product(ein_str, ff3, ff4)
+    compare(np_res3, ff_res3)
+
+    # Now check for errors
+    with pytest.raises(ValueError):
+        ff_tensor_product("ij,rik->rjk", ff1, ff3)
+    with pytest.raises(ValueError):
+        ff_tensor_product("ii,rik->rk", ff1, ff3)
