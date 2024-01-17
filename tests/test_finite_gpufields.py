@@ -7,22 +7,30 @@ from pyadic.finite_field import ModP
 
 from bgtrees.finite_gpufields import FiniteField
 from bgtrees.finite_gpufields.finite_fields_tf import oinsum
-from bgtrees.finite_gpufields.operations import ff_dot_product
+from bgtrees.finite_gpufields.operations import ff_dot_product, ff_index_permutation
 
 # p-value for tests
 p = 2**31 - 19
+NBATCH = 10
+
+
+def _create_example(shape=(2, 3, 4)):
+    """Creates a pair of a random int array between 0 and p and its FiniteField representation"""
+    np_arr = np.random.randint(0, p, size=shape)
+    ff_arr = FiniteField(np_arr, p)
+    return np_arr, ff_arr
 
 
 # Helper functions
-def array_to_pyadic(r):
+def _array_to_pyadic(r):
     """Make an array of numbers into an array of pyadic ModP objects"""
     clist = []
     if hasattr(r, "shape") and r.shape:
         for i in r:
-            clist.append(array_to_pyadic(i))
+            clist.append(_array_to_pyadic(i).tolist())
     else:
         clist.append(ModP(r, p))
-    return clist
+    return np.array(clist).squeeze()
 
 
 def compare(tfff, pyff):
@@ -37,14 +45,11 @@ def compare(tfff, pyff):
 
 def test_ff_primitives_against_pyadic():
     """Test all FF primitives against pyadic"""
-    r1 = (p * np.random.rand(2, 3, 4)).astype(int)
-    r2 = (p * np.random.rand(2, 3, 4)).astype(int)
+    r1, f1 = _create_example()
+    r2, f2 = _create_example()
 
-    f1 = FiniteField(r1, p)
-    f2 = FiniteField(r2, p)
-
-    p1 = np.array(array_to_pyadic(r1)).squeeze()
-    p2 = np.array(array_to_pyadic(r2)).squeeze()
+    p1 = _array_to_pyadic(r1)
+    p2 = _array_to_pyadic(r2)
 
     a = p // 2
     compare(-f1, -p1)
@@ -74,14 +79,20 @@ def test_kernel_dot_product():
     for a batch r of matrices
     Whether it will run on CPU or GPU depends on the underlying machine
     """
-    N = 10
-    dd1 = (p * np.random.rand(N, 2, 3)).astype(int)
-    dd2 = (p * np.random.rand(N, 3, 4)).astype(int)
-    fd1 = FiniteField(dd1, p)
-    fd2 = FiniteField(dd2, p)
+    _, fd1 = _create_example(shape=(NBATCH, 2, 3))
+    _, fd2 = _create_example(shape=(NBATCH, 3, 4))
 
     dot_str = "rij,rjk->rik"
     res_object = oinsum(dot_str, fd1, fd2)
     fres_cuda = ff_dot_product(fd1, fd2)
 
     compare(fres_cuda, res_object)
+
+
+def test_einsum_permutation():
+    """Test a permutation of index using einsum strings"""
+    np1, ff1 = _create_example(shape=(2, 3, 4, 5))
+    ein_str = "ijkl->kilj"
+    np_res = _array_to_pyadic(np.einsum(ein_str, np1))
+    ff_res = ff_index_permutation(ein_str, ff1)
+    compare(ff_res, np_res)
