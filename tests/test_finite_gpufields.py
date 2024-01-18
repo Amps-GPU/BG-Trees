@@ -78,9 +78,9 @@ def test_ff_primitives_against_pyadic():
     compare(f1**5, p1**5)
 
 
-def test_kernel_dot_product():
+def test_kernel_batched_dot_product():
     """Test the batched dot product
-    i.e., ij * jk -> ik
+    i.e., rij * rjk -> rik
     for a batch r of matrices
     Whether it will run on CPU or GPU depends on the underlying machine
     """
@@ -90,7 +90,24 @@ def test_kernel_dot_product():
     dot_str = "rij,rjk->rik"
     res_object = oinsum(dot_str, fd1, fd2)
     fres_cuda = ff_dot_product(fd1, fd2)
+    compare(fres_cuda, res_object)
 
+    # Now test the special 1-index-missing cases
+    _, fd3 = _create_example(shape=(NBATCH, 3))
+    dot_str = "rj,rjk->rk"
+    res_object = oinsum(dot_str, fd3, fd2)
+    fres_cuda = ff_dot_product(fd3, fd2)
+    compare(fres_cuda, res_object)
+
+    _, fd4 = _create_example(shape=(NBATCH, 3))
+    dot_str = "rj,rj->r"
+    res_object = oinsum(dot_str, fd3, fd4)
+    fres_cuda = ff_dot_product(fd3, fd4)
+    compare(fres_cuda, res_object)
+
+    dot_str = "rij,rj->ri"
+    res_object = oinsum(dot_str, fd1, fd4)
+    fres_cuda = ff_dot_product(fd1, fd4)
     compare(fres_cuda, res_object)
 
 

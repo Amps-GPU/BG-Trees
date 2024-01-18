@@ -8,9 +8,10 @@
 
 from collections import Counter
 
+import tensorflow as tf
+
 from .cuda_operators import wrapper_dot_product
 from .finite_fields_tf import FiniteField
-import tensorflow as tf
 
 
 def ff_index_permutation(einstr, x):
@@ -27,7 +28,23 @@ def ff_dot_product(x, y):
 
     Equivalent einsum string: "rij,rjk->rik"
     """
-    ret = wrapper_dot_product(x.values, y.values)
+    x_vals = x.values
+    y_vals = y.values
+
+    dims_to_squeeze = []
+    if len(x.shape) == 2:
+        # If rank is 2, then it _must_ correspond, for the first input to
+        # (batch, contracted_index); for now don't think about special cases
+        x_vals = tf.expand_dims(x_vals, axis=1)
+        dims_to_squeeze.append(1)
+
+    if len(y.shape) == 2:
+        y_vals = tf.expand_dims(y_vals, axis=2)
+        dims_to_squeeze.append(2)
+
+    ret = wrapper_dot_product(x_vals, y_vals)
+    if dims_to_squeeze:
+        ret = tf.squeeze(ret, dims_to_squeeze)
     return FiniteField(ret, x.p)
 
 
