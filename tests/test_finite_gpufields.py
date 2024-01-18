@@ -3,16 +3,13 @@
 """
 
 import numpy as np
-import pytest
 from pyadic.finite_field import ModP
+import pytest
+import tensorflow as tf
 
 from bgtrees.finite_gpufields import FiniteField
 from bgtrees.finite_gpufields.finite_fields_tf import oinsum
-from bgtrees.finite_gpufields.operations import (
-    ff_dot_product,
-    ff_index_permutation,
-    ff_tensor_product,
-)
+from bgtrees.finite_gpufields.operations import ff_dot_product, ff_index_permutation, ff_tensor_product
 
 # p-value for tests
 p = 2**31 - 19
@@ -136,3 +133,37 @@ def test_einsum_tensorproduct():
         ff_tensor_product("ij,rik->rjk", ff1, ff3)
     with pytest.raises(ValueError):
         ff_tensor_product("ii,rik->rk", ff1, ff3)
+
+
+@pytest.mark.parametrize("mode", ["prod", "sum"])
+def test_reduce(mode):
+    """Checks that reduce_sum works as intended"""
+    r1, f1 = _create_example(shape=(2, 2, 3))
+    p1 = _array_to_pyadic(r1)
+
+    if mode == "prod":
+        reduce_function = tf.reduce_prod
+        np_reduce = np.prod
+    elif mode == "sum":
+        reduce_function = tf.reduce_sum
+        np_reduce = np.sum
+
+    # For a selected axis
+    sum_ff = reduce_function(f1, axis=1)
+    sum_pp = np_reduce(p1, axis=1)
+    compare(sum_ff, sum_pp)
+
+    # For a selected axis
+    sum_ff = reduce_function(f1, axis=1, keepdims=True)
+    sum_pp = np_reduce(p1, axis=1, keepdims=True)
+    compare(sum_ff, sum_pp)
+
+    # For all axis
+    sum_f2 = reduce_function(f1)
+    sum_p2 = np_reduce(p1)
+    compare(sum_f2, sum_p2)
+
+    # And for a selection
+    sum_f3 = reduce_function(f1, axis=(0, 2))
+    sum_p3 = np_reduce(p1, axis=(0, 2))
+    compare(sum_f3, sum_p3)
