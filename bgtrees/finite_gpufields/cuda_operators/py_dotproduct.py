@@ -24,7 +24,7 @@ import tensorflow as tf
 
 PMOD = 2**31 - 19
 
-dot_product_module = tf.load_op_library('./dot_product.so')
+dot_product_module = tf.load_op_library("./dot_product.so")
 
 
 @tf.function
@@ -32,10 +32,12 @@ def wrapper_dot_product(x, y):
     ret = dot_product_module.dot_product(x, y)
     return ret
 
+
 @tf.function
 def wrapper_dot_product_single_batch(x, y):
     ret = dot_product_module.dot_product_single_batch(x, y)
     return ret
+
 
 def fully_python_dot_product(x, y):
     ret = np.einsum("bij,bjk->bik", x, y)
@@ -53,7 +55,7 @@ def check_galois(x, y, pmod=PMOD, nmax=1000):
     if len(y.shape) == 3:
         fy = FF(y[:nmax])
     else:
-        fy = [FF(y)]*nmax
+        fy = [FF(y)] * nmax
 
     st = time.time()
     res = [f1 @ f2 for f1, f2 in zip(fx, fy)]
@@ -63,8 +65,8 @@ def check_galois(x, y, pmod=PMOD, nmax=1000):
 
 
 if __name__ == "__main__":
-    N = 2 # int(1e7)
-    maxval = 10 # PMOD
+    N = 2  # int(1e7)
+    maxval = 10  # PMOD
     x = np.random.randint(maxval, size=6 * N).reshape(N, 2, 3)
     y = np.random.randint(maxval, size=12 * N).reshape(N, 3, 4)
     ysb = np.random.randint(maxval, size=12).reshape(3, 4)
@@ -79,9 +81,9 @@ if __name__ == "__main__":
     # Compile the operation beforehand
     c1 = wrapper_dot_product(tfx[0:2], tfy[0:2])
     c2 = wrapper_dot_product_single_batch(tfx[0:2], tfy_sb)
-#     print(x @ ysb)
-#     print(c2)
-#     import ipdb; ipdb.set_trace()
+    #     print(x @ ysb)
+    #     print(c2)
+    #     import ipdb; ipdb.set_trace()
 
     start = time.time()
     res = wrapper_dot_product(tfx, tfy)
@@ -109,9 +111,9 @@ if __name__ == "__main__":
     res_gal_sb, _ = check_galois(x, ysb, nmax=test_n)
 
     if res_gal is not None:
-        print(f" > Testing with galois the double batched results (rx . ry = rz)")
+        print(" > Testing with galois the double batched results (rx . ry = rz)")
         print(f"The Galois loop, took {time_gal:.4}s ({test_n/N*100}% of the events)")
         print(f"Does it agree? {np.allclose(res.numpy()[:test_n], np.array(res_gal))}")
 
-        print(f" > Testing with galois the single batched numbers (rx . y = rz)")
+        print(" > Testing with galois the single batched numbers (rx . y = rz)")
         print(f"Does it agree? {np.allclose(res_sb.numpy()[:test_n], np.array(res_gal_sb))}")

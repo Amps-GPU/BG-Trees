@@ -1,0 +1,36 @@
+name: checks on cpu
+
+on:
+  push:
+    branches: [ main, ]
+  pull_request:
+    branches: [ '*', ]
+  workflow_dispatch:
+    branches: [ main, ]
+
+env:
+  CUDA_VISIBLE_DEVICES: ""
+
+jobs:
+  test: 
+    runs-on: [ubuntu-latest]
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Checkout this Repo
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        pip install .[tests]
+        # Try building by hand
+        python build.py
+
+    - name: Test with pytest
+      run: |
+        pytest 
