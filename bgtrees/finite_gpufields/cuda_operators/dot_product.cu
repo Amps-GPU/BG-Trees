@@ -23,8 +23,12 @@ namespace myfunctor {
             const int b_o = n*o1*o2;
             const int b_x = n*o1*size_i;
 
-            int b_y = n * o2 * size_i;
-            if constexpr(singleBatch) int b_y = 0;
+            int b_y;
+            if constexpr(singleBatch) {
+                b_y = 0;
+            } else {
+                b_y = n * o2 * size_i;
+            }
 
             for (int i = 0; i < o1; i++) {
                 for (int j = 0; j < o2; j++) {
