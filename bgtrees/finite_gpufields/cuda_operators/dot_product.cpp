@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 // CPU specialization of actual computation.
-template <typename T> struct myfunctor::DotProductFunctor<CPUDevice, T> {
+template <typename T, bool singleBatch> struct myfunctor::DotProductFunctor<CPUDevice, T, singleBatch> {
     void operator()(const CPUDevice &d, const int bs, const int o1,
                     const int o2, const int size_i, const T *x, const T *y,
                     T *out) {
@@ -11,7 +11,9 @@ template <typename T> struct myfunctor::DotProductFunctor<CPUDevice, T> {
 
             const int b_o = n * o1 * o2;
             const int b_x = n * o1 * size_i;
-            const int b_y = n * o2 * size_i;
+
+            int b_y = n * o2 * size_i;
+            if constexpr(singleBatch) int b_y = 0;
 
             for (int i = 0; i < o1; i++) {
                 for (int j = 0; j < o2; j++) {
@@ -31,11 +33,11 @@ template <typename T> struct myfunctor::DotProductFunctor<CPUDevice, T> {
 
 // OpKernel definition.
 // template parameter <T> is the datatype of the tensors.
-template <typename Device, typename T>
-DotProductOp<Device, T>::DotProductOp(OpKernelConstruction* context) : OpKernel(context) {}
+template <typename Device, typename T, bool singleBatch>
+DotProductOp<Device, T, singleBatch>::DotProductOp(OpKernelConstruction* context) : OpKernel(context) {}
 
-template <typename Device, typename T>
-void DotProductOp<Device, T>::Compute(OpKernelContext* context) {
+template <typename Device, typename T, bool singleBatch>
+void DotProductOp<Device, T, singleBatch>::Compute(OpKernelContext* context) {
 	// Grab the input
 	const Tensor& input_x = context->input(0);
 	const Tensor& input_y = context->input(1);
@@ -62,7 +64,7 @@ void DotProductOp<Device, T>::Compute(OpKernelContext* context) {
 	Tensor* output_tensor = NULL;
 	OP_REQUIRES_OK(context, context->allocate_output(0, output_shape,&output_tensor));
 
-    myfunctor::DotProductFunctor<Device, T>()(
+    myfunctor::DotProductFunctor<Device, T, singleBatch>()(
 		context->eigen_device<Device>(),
 		static_cast<int>(batch_size),
 		static_cast<int>(outer_x),
@@ -76,8 +78,12 @@ void DotProductOp<Device, T>::Compute(OpKernelContext* context) {
 // Register the CPU kernels.
 #define REGISTER_CPU(T)                                          \
         REGISTER_KERNEL_BUILDER(                                       \
+                Name("DotProductSingleBatch").Device(DEVICE_CPU).TypeConstraint<T>("T"), \
+                DotProductOp<CPUDevice, T, true>); \
+        REGISTER_KERNEL_BUILDER(                                       \
                 Name("DotProduct").Device(DEVICE_CPU).TypeConstraint<T>("T"), \
-                DotProductOp<CPUDevice, T>);
+                DotProductOp<CPUDevice, T, false>);
+
 REGISTER_CPU(int64);
 REGISTER_CPU(int32);
 
@@ -87,10 +93,15 @@ REGISTER_CPU(int32);
 #define EIGEN_USE_GPU
 
 #define REGISTER_GPU(T)                                          \
-        extern template struct myfunctor::DotProductFunctor<GPUDevice, T>;           \
+        extern template struct myfunctor::DotProductFunctor<GPUDevice, T, false>;           \
+        extern template struct myfunctor::DotProductFunctor<GPUDevice, T, true>;           \
+        REGISTER_KERNEL_BUILDER(                                        \
+                Name("DotProductSingleBatch").Device(DEVICE_GPU).TypeConstraint<T>("T"), \
+                DotProductOp<GPUDevice, T, true>); \
         REGISTER_KERNEL_BUILDER(                                       \
                 Name("DotProduct").Device(DEVICE_GPU).TypeConstraint<T>("T"), \
-                DotProductOp<GPUDevice, T>);
+                DotProductOp<GPUDevice, T, false>);
+
 REGISTER_GPU(int64);
 REGISTER_GPU(int32);
 #endif  // GOOGLE_CUDA

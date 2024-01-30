@@ -32,6 +32,11 @@ def wrapper_dot_product(x, y):
     ret = dot_product_module.dot_product(x, y)
     return ret
 
+@tf.function
+def wrapper_dot_product_single_batch(x, y):
+    import ipdb; ipdb.set_trace()
+    ret = dot_product_module.dot_product_single_batch(x, y)
+    return ret
 
 def fully_python_dot_product(x, y):
     ret = np.einsum("bij,bjk->bik", x, y)
@@ -46,7 +51,10 @@ def check_galois(x, y, pmod=PMOD, nmax=1000):
 
     FF = galois.GF(pmod)
     fx = FF(x[:nmax])
-    fy = FF(y[:nmax])
+    if len(y.shape) == 3:
+        fy = FF(y[:nmax])
+    else:
+        fy = y
 
     st = time.time()
     res = [f1 @ f2 for f1, f2 in zip(fx, fy)]
@@ -60,15 +68,18 @@ if __name__ == "__main__":
     maxval = PMOD
     x = np.random.randint(maxval, size=6 * N).reshape(N, 2, 3)
     y = np.random.randint(maxval, size=12 * N).reshape(N, 3, 4)
+    ysb = np.random.randint(maxval, size=12).reshape(3, 4)
 
     #     print(x)
     #     print(y)
 
     tfx = tf.constant(x)
     tfy = tf.constant(y)
+    tfy_sb = tf.constant(ysb)
 
     # Compile the operation beforehand
     _ = wrapper_dot_product(tfx[0:2], tfy[0:2])
+    _ = wrapper_dot_product_single_batch(tfx[0:2], tfy_sb)
 
     start = time.time()
     res = wrapper_dot_product(tfx, tfy)
@@ -91,6 +102,14 @@ if __name__ == "__main__":
     test_n = 1000
     res_gal, time_gal = check_galois(x, y, nmax=test_n)
 
+    test_n = 1000
+    res_sb = wrapper_dot_product(tfx, tfy_sb)
+    res_gal_sb, _ = check_galois(x, ysb, nmax=test_n)
+
     if res_gal is not None:
+        print(f" > Testing with galois the double batched results (rx . ry = rz)")
         print(f"The Galois loop, took {time_gal:.4}s ({test_n/N*100}% of the events)")
         print(f"Does it agree? {np.allclose(res.numpy()[:test_n], np.array(res_gal))}")
+
+        print(f" > Testing with galois the single batched numbers (rx . y = rz)")
+        print(f"Does it agree? {np.allclose(res_sb.numpy()[:test_n], np.array(res_gal_sb))}")
