@@ -90,11 +90,11 @@ class FiniteField(experimental.ExtensionType):
         s, _, c = extended_euclidean_algorithm(self.n, self.p)
         if c.numpy().any() != 1:
             raise ZeroDivisionError(f"{self} has no inverse")
-        return FiniteField(s, self.p)
+        return self.__class__(s, self.p)
 
     # Primitive operations
     def __neg__(self):
-        return FiniteField(self.p - self.n, self.p)
+        return self.__class__(self.p - self.n, self.p)
 
     def __pos__(self):
         return self
@@ -102,12 +102,12 @@ class FiniteField(experimental.ExtensionType):
     def __add__(self, b):
         if not isinstance(b, FiniteField):
             b = FiniteField(b, self.p)
-        return FiniteField(self.n + b.n, self.p)
+        return self.__class__(self.n + b.n, self.p)
 
     def __sub__(self, b):
         if not isinstance(b, FiniteField):
             b = FiniteField(b, self.p)
-        return FiniteField(self.n - b.n, self.p)
+        return self.__class__(self.n - b.n, self.p)
 
     def __mul__(self, b):
         if not isinstance(b, FiniteField):
@@ -119,14 +119,14 @@ class FiniteField(experimental.ExtensionType):
 
     def __truediv__(self, b):
         if not isinstance(b, FiniteField):
-            b = FiniteField(b, self.p)
+            b = self.__class__(b, self.p)
         return self * b._inv()
 
     def __pow__(self, n: int):
         if n < 0:
             return 1 / (self**-n)
         elif n == 0:
-            return FiniteField(tf.ones_like(self.n), self.p)
+            return self.__class__(tf.ones_like(self.n), self.p)
         elif n % 2 == 0:
             root_2 = self ** (n // 2)
             return root_2 * root_2
@@ -134,7 +134,7 @@ class FiniteField(experimental.ExtensionType):
 
     # Experimental
     def __getitem__(self, idx):
-        return FiniteField(self.n[idx], self.p)
+        return self.__class__(self.n[idx], self.p)
 
     def zero_panning(self, front=True, m=4):
         """Pan with 0s the finite Field
@@ -155,7 +155,12 @@ class FiniteField(experimental.ExtensionType):
             new_values = tf.concat([zeros, self.n], axis=axis)
         else:
             new_values = tf.concat([self.n, zeros], axis=axis)
-        return FiniteField(new_values, self.p)
+        return self.__class__(new_values, self.p)
+
+    def reshape_ff(self, new_shape):
+        """Reshape the tensor contained in this FF"""
+        new_values = tf.reshape(self.n, new_shape)
+        return self.__class__(new_values, self.p)
 
     # Mirror version
     def __radd__(self, b):
