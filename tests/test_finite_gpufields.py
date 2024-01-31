@@ -159,11 +159,11 @@ def test_kernel_single_batched_dot_product():
 
     _, fdB = _create_example(shape=(1, 1, 1))
     with pytest.raises(ValueError):
-        ff_dot_product(fd1, fdB)
+        ff_dot_product_single_batch(fd1, fdB)
 
     _, fdB2 = _create_example(shape=(NBATCH, 1, 1, 1))
     with pytest.raises(ValueError):
-        ff_dot_product(fdB2, fd2)
+        ff_dot_product_single_batch(fdB2, fd2)
 
 
 def test_kernel_batched_dot_product_tris():
@@ -193,10 +193,10 @@ def test_kernel_batched_dot_product_tris():
 
     _, fdB = _create_example(shape=(NBATCH, 1, 1, 1, 1))
     with pytest.raises(ValueError):
-        ff_dot_product(fd1, fdB)
+        ff_dot_product_tris(fd1, fdB)
 
     with pytest.raises(ValueError):
-        ff_dot_product(fdB, fd2)
+        ff_dot_product_tris(fdB, fd2)
 
 
 def test_kernel_single_batched_dot_product_tris():
@@ -226,11 +226,11 @@ def test_kernel_single_batched_dot_product_tris():
 
     _, fdB = _create_example(shape=(1, 1, 1, 1))
     with pytest.raises(ValueError):
-        ff_dot_product(fd1, fdB)
+        ff_dot_product_tris_single_batch(fd1, fdB)
 
     _, fdB2 = _create_example(shape=(NBATCH, 1, 1, 1, 1))
     with pytest.raises(ValueError):
-        ff_dot_product(fdB2, fd2)
+        ff_dot_product_tris_single_batch(fdB2, fd2)
 
 
 def test_einsum_permutation():
