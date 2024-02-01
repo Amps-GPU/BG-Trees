@@ -44,7 +44,7 @@ lips = {version = "*", optional=true}
 jupyterlab = {version = "*", optional=true}
 
 [tool.poetry.extras]
-tests = ["pytest", "galois", "pyadic", "pytest-cov"]
+tests = ["pytest", "galois", "pyadic", "pytest-cov", "lips", "syngular"]
 notebooks = ["jupyterlab", "lips"]
 
 [tool.poetry-dynamic-versioning]
