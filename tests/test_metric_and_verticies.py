@@ -4,7 +4,6 @@ import tensorflow
 from bgtrees.metric_and_verticies import MinkowskiMetric, V3g
 from bgtrees.settings import settings
 
-
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 

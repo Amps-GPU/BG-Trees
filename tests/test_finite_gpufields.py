@@ -9,7 +9,14 @@ import tensorflow as tf
 
 from bgtrees.finite_gpufields import FiniteField
 from bgtrees.finite_gpufields.finite_fields_tf import oinsum
-from bgtrees.finite_gpufields.operations import ff_dot_product, ff_index_permutation, ff_tensor_product
+from bgtrees.finite_gpufields.operations import (
+    ff_dot_product,
+    ff_dot_product_single_batch,
+    ff_dot_product_tris,
+    ff_dot_product_tris_single_batch,
+    ff_index_permutation,
+    ff_tensor_product,
+)
 
 # p-value for tests
 p = 2**31 - 19
@@ -109,6 +116,121 @@ def test_kernel_batched_dot_product():
     res_object = oinsum(dot_str, fd1, fd4)
     fres_cuda = ff_dot_product(fd1, fd4)
     compare(fres_cuda, res_object)
+
+    _, fdB = _create_example(shape=(NBATCH, 1, 1, 1))
+    with pytest.raises(ValueError):
+        ff_dot_product(fd1, fdB)
+
+    with pytest.raises(ValueError):
+        ff_dot_product(fdB, fd2)
+
+
+def test_kernel_single_batched_dot_product():
+    """Test the single batched dot product
+    i.e., rij * jk -> rik
+    for a batch r of matrices
+    Whether it will run on CPU or GPU depends on the underlying machine
+    """
+    _, fd1 = _create_example(shape=(NBATCH, 2, 3))
+    _, fd2 = _create_example(shape=(3, 4))
+
+    dot_str = "rij,jk->rik"
+    res_object = oinsum(dot_str, fd1, fd2)
+    fres_cuda = ff_dot_product_single_batch(fd1, fd2)
+    compare(fres_cuda, res_object)
+
+    # Now test the special 1-index-missing cases
+    _, fd3 = _create_example(shape=(NBATCH, 3))
+    dot_str = "rj,jk->rk"
+    res_object = oinsum(dot_str, fd3, fd2)
+    fres_cuda = ff_dot_product_single_batch(fd3, fd2)
+    compare(fres_cuda, res_object)
+
+    _, fd4 = _create_example(shape=(3,))
+    dot_str = "rj,j->r"
+    res_object = oinsum(dot_str, fd3, fd4)
+    fres_cuda = ff_dot_product_single_batch(fd3, fd4)
+    compare(fres_cuda, res_object)
+
+    dot_str = "rij,j->ri"
+    res_object = oinsum(dot_str, fd1, fd4)
+    fres_cuda = ff_dot_product_single_batch(fd1, fd4)
+    compare(fres_cuda, res_object)
+
+    _, fdB = _create_example(shape=(1, 1, 1))
+    with pytest.raises(ValueError):
+        ff_dot_product_single_batch(fd1, fdB)
+
+    _, fdB2 = _create_example(shape=(NBATCH, 1, 1, 1))
+    with pytest.raises(ValueError):
+        ff_dot_product_single_batch(fdB2, fd2)
+
+
+def test_kernel_batched_dot_product_tris():
+    """Test the batched dot product of 3x3 tensors
+    i.e., riaj * rjkb -> riakb for a batch r of matrices
+    """
+    _, fd1 = _create_example(shape=(NBATCH, 2, 5, 3))
+    _, fd2 = _create_example(shape=(NBATCH, 3, 4, 6))
+
+    dot_str = "riaj,rjkb->riakb"
+    res_object = oinsum(dot_str, fd1, fd2)
+    fres_cuda = ff_dot_product_tris(fd1, fd2)
+    compare(fres_cuda, res_object)
+
+    # Now test the special 1-index-missing cases
+    _, fd3 = _create_example(shape=(NBATCH, 5, 3))
+    dot_str = "raj,rjkb->rakb"
+    res_object = oinsum(dot_str, fd3, fd2)
+    fres_cuda = ff_dot_product_tris(fd3, fd2)
+    compare(fres_cuda, res_object)
+
+    _, fd4 = _create_example(shape=(NBATCH, 3, 5))
+    dot_str = "riaj,rjb->riab"
+    res_object = oinsum(dot_str, fd1, fd4)
+    fres_cuda = ff_dot_product_tris(fd1, fd4)
+    compare(fres_cuda, res_object)
+
+    _, fdB = _create_example(shape=(NBATCH, 1, 1, 1, 1))
+    with pytest.raises(ValueError):
+        ff_dot_product_tris(fd1, fdB)
+
+    with pytest.raises(ValueError):
+        ff_dot_product_tris(fdB, fd2)
+
+
+def test_kernel_single_batched_dot_product_tris():
+    """Test the batched dot product of 3x3 tensors
+    i.e., riaj * jkb -> riakb for a batch r of matrices
+    """
+    _, fd1 = _create_example(shape=(NBATCH, 2, 5, 3))
+    _, fd2 = _create_example(shape=(3, 4, 6))
+
+    dot_str = "riaj,jkb->riakb"
+    res_object = oinsum(dot_str, fd1, fd2)
+    fres_cuda = ff_dot_product_tris_single_batch(fd1, fd2)
+    compare(fres_cuda, res_object)
+
+    # Now test the special 1-index-missing cases
+    _, fd3 = _create_example(shape=(NBATCH, 5, 3))
+    dot_str = "raj,jkb->rakb"
+    res_object = oinsum(dot_str, fd3, fd2)
+    fres_cuda = ff_dot_product_tris_single_batch(fd3, fd2)
+    compare(fres_cuda, res_object)
+
+    _, fd4 = _create_example(shape=(3, 5))
+    dot_str = "riaj,jb->riab"
+    res_object = oinsum(dot_str, fd1, fd4)
+    fres_cuda = ff_dot_product_tris_single_batch(fd1, fd4)
+    compare(fres_cuda, res_object)
+
+    _, fdB = _create_example(shape=(1, 1, 1, 1))
+    with pytest.raises(ValueError):
+        ff_dot_product_tris_single_batch(fd1, fdB)
+
+    _, fdB2 = _create_example(shape=(NBATCH, 1, 1, 1, 1))
+    with pytest.raises(ValueError):
+        ff_dot_product_tris_single_batch(fdB2, fd2)
 
 
 def test_einsum_permutation():
