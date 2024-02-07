@@ -1,5 +1,5 @@
 [build-system]
-requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.1.0", "tensorflow[and-cuda]"]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.1.0", "tensorflow[and-cuda]<2.16"]
 build-backend = "poetry_dynamic_versioning.backend"
 
 [tool.poetry]
@@ -33,7 +33,7 @@ include = [
 
 [tool.poetry.dependencies] 
 python = "^3.10"
-tensorflow = {version = "*", extras = ["and-cuda"]}
+tensorflow = {version = "<2.16", extras = ["and-cuda"]}
 # For testing
 galois = {version = "*", optional=true}
 pytest = {version = "*", optional=true}
@@ -75,7 +75,6 @@ max-line-length = 120
 
 [tool.black]
 line-length = 120
-skip-string-normalization = 1
 skip_magic_trailing_comma = true
 
 [tool.isort]

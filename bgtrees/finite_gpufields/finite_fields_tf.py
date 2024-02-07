@@ -2,23 +2,21 @@
     Tensorflow extention to have a Finite Fields type that works in GPU
     port of https://github.com/GDeLaurentis/pyadic/blob/main/pyadic/finite_field.py
 
-    Note: all operations between two finite fields assume that the size is the same
-    and that p is going to always be prime. Any checks should have occur before getting to
-    this function.
+    The TensorFlow ExtensionType FiniteField act as a container.
+    Any operation between two FiniteField will result in another FiniteField
 
-    The `isinstance` conditional in practice will create two versions of the function
-    depending on the input type.
+    Note: all operations between two FiniteField assume that p is going to always be prime
+    and the same. Any checks should have occur before getting to this function.
 """
 import functools
 import operator
-import string
 
 import numpy as np
 from pyadic.finite_field import ModP, finite_field_sqrt
 import tensorflow as tf
 from tensorflow import experimental
 
-# tf.config.run_functions_eagerly(True)
+tf.config.run_functions_eagerly(True)
 
 
 @functools.lru_cache
@@ -208,10 +206,75 @@ def finite_field_unary_operations(api_func, x):
     return FiniteField(val, x.p)
 
 
-@experimental.dispatch_for_binary_elementwise_apis(FiniteField, FiniteField)
-def finite_field_binary_operations(api_func, x, y):
-    val = api_func(x.n, y.n)
-    return FiniteField(val, x.p)
+# @experimental.dispatch_for_binary_elementwise_apis(FiniteField, FiniteField)
+# def finite_field_binary_operations(api_func, x, y):
+#     val = api_func(x.n, y.n)
+#     return FiniteField(val, x.p)
+
+
+# Overrides for array transformations (no generic way of doing this?)
+@experimental.dispatch_for_api(tf.unstack, {"value": FiniteField})
+def finite_field_unstack(value, num=None, axis=0, name="unstack"):
+    """Override the unstack function to act on a FiniteField container
+    Returns a list of FiniteFields where the value of the FF is unstacked"""
+    ret_int = tf.unstack(value.n, num=num, axis=axis, name=name)
+    return [FiniteField(i, value.p) for i in ret_int]
+
+
+@experimental.dispatch_for_api(tf.expand_dims, {"input": FiniteField})
+def finite_field_expand_dims(input, axis, name=None):
+    """Override expand dims for FiniteField containers"""
+    # note: the name `input` for this input is tensorflow's fault...
+    new_n = tf.expand_dims(input.n, axis=axis)
+    return FiniteField(new_n, input.p)
+
+
+@experimental.dispatch_for_api(tf.squeeze, {"input": FiniteField})
+def finite_field_squeeze(input, axis, name=None):
+    """Override squeeze for FiniteField containers"""
+    new_n = tf.squeeze(input.n, axis=axis)
+    return FiniteField(new_n, input.p)
+
+
+######
+
+
+def _finite_field_reduce(red_op, input_tensor, axis=None, keepdims=False):
+    """Auxiliar function to reduce Finite Field containers"""
+    if axis is None:
+        all_axes = list(range(len(input_tensor.shape)))
+        return _finite_field_reduce(red_op, input_tensor, axis=all_axes, keepdims=keepdims)
+
+    # Hopefully the exception block is compiled away upon first pass...
+    try:
+        res = input_tensor
+        for ax in axis:
+            res = _finite_field_reduce(red_op, res, axis=ax, keepdims=True)
+        if not keepdims:
+            res = tf.squeeze(res, axis=axis)
+        return res
+    except TypeError:
+        pass
+
+    # First separate the FF in the axis that we want to sum over
+    unstacked_ff = tf.unstack(input_tensor, axis=axis)
+    summed_ff = functools.reduce(red_op, unstacked_ff)
+    # Add a dummy dimension if the user asked for it
+    if keepdims:
+        summed_ff = tf.expand_dims(summed_ff, axis)
+    return summed_ff
+
+
+@experimental.dispatch_for_api(tf.reduce_sum, {"input_tensor": FiniteField})
+def finite_field_reduce_sum(input_tensor, axis=None, keepdims=False, name=None):
+    """Override the reduce_sum operation for a FiniteField container"""
+    return _finite_field_reduce(operator.add, input_tensor, axis=axis, keepdims=keepdims)
+
+
+@experimental.dispatch_for_api(tf.reduce_prod, {"input_tensor": FiniteField})
+def finite_field_reduce_prod(input_tensor, axis=None, keepdims=False, name=None):
+    """Override the reduce_sum operation for a FiniteField container"""
+    return _finite_field_reduce(operator.mul, input_tensor, axis=axis, keepdims=keepdims)
 
 
 def oinsum(eq, *arrays):
@@ -267,114 +330,3 @@ def oinsum(eq, *arrays):
         out = FiniteField(new_out, p)
 
     return out
-
-
-# @experimental.dispatch_for_api(tf.tensordot)
-# Actually it doesn't make sense to change the api here
-# unless a version able to handle also other types is generated
-def ff_tensordot(a, b, axes):
-    """Implementation of tensordot for operations involving finite fields"""
-    lhs = len(a.shape)
-    rhs = len(b.shape)
-    i1 = string.ascii_lowercase[:lhs]
-    i2 = string.ascii_lowercase[-rhs:]
-    if axes > 0:
-        if lhs < rhs:
-            raise NotImplementedError("Not implemented yet for y.shape > x.shape")
-        i2 = i1[::-1][:axes] + i2[axes:]
-    elif axes == 0:
-        pass
-    else:
-        raise NotImplementedError(f"Not implemented yet for {axes=}")
-
-    ret = "".join(sorted(set(i1).symmetric_difference(i2)))
-    eq_final = f"{i1},{i2}->{ret}"
-    print(eq_final)
-    return oinsum(eq_final, a, b)
-
-
-if __name__ == "__main__":
-    print("Testing TF finite fields and comparing them to pyadic")
-
-    p = 2**31 - 19
-
-    r1 = (p * np.random.rand(2, 3, 4)).astype(int)
-    r2 = (p * np.random.rand(2, 3, 4)).astype(int)
-
-    f1 = FiniteField(r1, p)
-    f2 = FiniteField(r2, p)
-
-    def artor(r):
-        clist = []
-        if hasattr(r, "shape") and r.shape:
-            for i in r:
-                clist.append(artor(i))
-        else:
-            clist.append(ModP(r, p))
-        return clist
-
-    def compare(tfff, pyff):
-        if not isinstance(tfff, FiniteField) and isinstance(pyff, FiniteField):
-            return compare(pyff, tfff)
-
-        a = tfff.values.numpy()
-        b = np.vectorize(lambda x: x.n)(pyff)
-        if np.allclose(a, b):
-            return "equal!"
-        return "ERROR!"
-
-    p1 = np.array(artor(r1)).squeeze()
-    p2 = np.array(artor(r2)).squeeze()
-
-    a = p // 2
-
-    t = compare(-f1, -p1)
-    print(f"Comparing operation: -, {t}")
-
-    t = compare(f1 + a, p1 + a)
-    print(f"Comparing operation: FF + a, {t}")
-
-    t = compare(f1 + f2, p1 + p2)
-    print(f"Comparing operation: FF + FF, {t}")
-
-    t = compare(f1 - f2, p1 - p2)
-    print(f"Comparing operation: FF - FF, {t}")
-
-    t = compare(f1 * a, p1 * a)
-    print(f"Comparing operation: FF * a, {t}")
-
-    t = compare(f1 * f2, p1 * p2)
-    print(f"Comparing operation: FF * FF, {t}")
-
-    t = compare(f1 / a, p1 / a)
-    print(f"Comparing operation: FF / a, {t}")
-
-    t = compare(f1 / f2, p1 / p2)
-    print(f"Comparing operation: FF / FF, {t}")
-
-    t = compare(a / f2, a / p2)
-    print(f"Comparing operation: FF / FF, {t}")
-
-    t = compare(f1**5, p1**5)
-    print(f"Comparing operation: FF**n, {t}")
-
-    # Test the dot product
-    N = 10
-    dd1 = (p * np.random.rand(N, 2, 3)).astype(int)
-    dd2 = (p * np.random.rand(N, 3, 4)).astype(int)
-    fd1 = FiniteField(dd1, p)
-    fd2 = FiniteField(dd2, p)
-
-    from operations import ff_dot_product, ff_tensor_product
-
-    dot_str = "rij,rjk->rik"
-    res_object = oinsum(dot_str, fd1, fd2)
-    fres_cuda = ff_dot_product(fd1, fd2)
-    t = compare(fres_cuda, res_object)
-    print(f"Comparing dot product {dot_str}: {t}")
-
-    ein_str = "rij,rlk->riklj"
-    res_object = oinsum(ein_str, fd1, fd2)
-    fres_cuda = ff_tensor_product(ein_str, fd1, fd2)
-    t = compare(fres_cuda, res_object)
-    print(f"Comparing tensor product {ein_str}: {t}")

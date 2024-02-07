@@ -1,7 +1,7 @@
 # Berends-Giele Recursion for Trees on the GPU
 
 [![Continuous Integration Status](https://github.com/Amps-GPU/BG-Trees/actions/workflows/continuous_integration.yml/badge.svg)](https://github.com/Amps-GPU/BG-Trees/actions)
-[![Coverage](https://img.shields.io/badge/Coverage-51%25-orange?labelColor=2a2f35)](https://github.com/Amps-GPU/BG-Trees/actions)
+[![Coverage](https://img.shields.io/badge/Coverage-73%25-yellow?labelColor=2a2f35)](https://github.com/Amps-GPU/BG-Trees/actions)
 
 ## Installation
 
