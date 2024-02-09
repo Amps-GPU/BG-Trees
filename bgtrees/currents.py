@@ -14,14 +14,14 @@ def J_μ(lmoms, lpols, put_propagator=True, depth=0, verbose=False, einsum=numpy
     Ds = lpols.shape[-1]
     assert D == Ds
     if multiplicity == 1:
-        return numpy.einsum("mn,rn->rm", η(D), lpols[:, 0])
+        return einsum("mn,rn->rm", η(D), lpols[:, 0])
     else:
         if put_propagator:
-            tot_moms = numpy.einsum("rid->rd", lmoms)
-            propagators = 1 / numpy.einsum("rm,mn,rn->r", tot_moms, η(D), tot_moms)
+            tot_moms = einsum("rid->rd", lmoms)
+            propagators = 1 / einsum("rm,mn,rn->r", tot_moms, η(D), tot_moms)
         Jrμ = (sum([einsum("rmno,rn,ro->rm",
-                           V3g(numpy.einsum("rim->rm", lmoms[:, :i, :]),
-                               numpy.einsum("rim->rm", lmoms[:, i:, :])),
+                           V3g(einsum("rim->rm", lmoms[:, :i, :]),
+                               einsum("rim->rm", lmoms[:, i:, :])),
                            J_μ(lmoms[:, :i], lpols[:, :i], depth=depth + 1, verbose=verbose),
                            J_μ(lmoms[:, i:], lpols[:, i:], depth=depth + 1, verbose=verbose)
                            ) for i in range(1, multiplicity)]) +
