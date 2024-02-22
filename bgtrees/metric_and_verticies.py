@@ -1,9 +1,10 @@
 import numpy
-import tensorflow
 
+from lips.tools import Pauli, Pauli_bar
 from .tools import gpu_constant, gpu_function
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+Gamma = γμ = numpy.block([[numpy.zeros((4, 2, 2)), Pauli_bar], [Pauli, numpy.zeros((4, 2, 2))]])
+Gamma5 = γ5 = numpy.block([[numpy.identity(2), numpy.zeros((2, 2))], [numpy.zeros((2, 2)), -numpy.identity(2)]])
 
 
 @gpu_constant
@@ -12,29 +13,25 @@ def MinkowskiMetric(D):
     return numpy.diag([1] + [-1] * (D - 1))
 
 
+η = MinkowskiMetric
+
+
 @gpu_constant
 def V4g(D):
     """4-gluon vertex, upper indices μνρσ"""
     return (
-        2
-        * numpy.einsum(
-            "lnmo->lmno", numpy.tensordot(MinkowskiMetric(D), MinkowskiMetric(D), axes=0)
-        )
-        - numpy.einsum(
-            "lmno->lmno", numpy.tensordot(MinkowskiMetric(D), MinkowskiMetric(D), axes=0)
-        )
-        - numpy.einsum(
-            "lomn->lmno", numpy.tensordot(MinkowskiMetric(D), MinkowskiMetric(D), axes=0)
-        )
+        2 * numpy.einsum("ln,mo->lmno", η(D), η(D))
+        - numpy.einsum("lm,no->lmno", η(D), η(D))
+        - numpy.einsum("lo,mn->lmno", η(D), η(D))
     )
 
 
 @gpu_function
-def V3g(p1, p2, tensordot=tensorflow.tensordot, einsum=tensorflow.einsum):
+def V3g(lp1, lp2, einsum=numpy.einsum):
     """3-gluon vertex, upper indices μνρ, D-dimensional"""
-    D = p1.shape[0]
+    D = lp1.shape[1]
     return (
-        einsum("mnl->lmn", tensordot(MinkowskiMetric(D), (p1 - p2), axes=0))
-        + 2 * einsum("nlm->lmn", tensordot(MinkowskiMetric(D), p2, axes=0))
-        - 2 * einsum("lmn->lmn", tensordot(MinkowskiMetric(D), p1, axes=0))
+        einsum("mn,rl->rlmn", η(D), (lp1 - lp2))
+        + 2 * einsum("nl,rm->rlmn", η(D), lp2)
+        - 2 * einsum("lm,rn->rlmn", η(D), lp1)
     )

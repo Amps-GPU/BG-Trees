@@ -22,11 +22,11 @@ def test_MinkowskiMetric_cpu_vs_gpu():
 
 
 def test_V3g_cpu_vs_gpu():
-    p1, p2 = numpy.array([1, 1, 0, 0, 0]), numpy.array([1, -1, 0, 0, 0])
+    lp1, lp2 = numpy.array([[1, 1, 0, 0, 0]]), numpy.array([[1, -1, 0, 0, 0]])
     settings.use_gpu = True
-    V3g_gpu = V3g(p1, p2)
+    V3g_gpu = V3g(lp1, lp2)
     settings.use_gpu = False
-    V3g_cpu = V3g(p1, p2)
+    V3g_cpu = V3g(lp1, lp2)
     # dtype
     assert isinstance(V3g_gpu.dtype, tensorflow.dtypes.DType)
     assert not isinstance(V3g_gpu.dtype, numpy.dtype)

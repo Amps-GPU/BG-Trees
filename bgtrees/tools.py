@@ -32,11 +32,13 @@ def gpu_function(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         if settings.use_gpu:
-            kwargs['tensordot'] = tensorflow.tensordot
+            # kwargs['tensordot'] = tensorflow.tensordot
             kwargs['einsum'] = tensorflow.einsum
+            # kwargs['block'] = ...
         else:
-            kwargs['tensordot'] = numpy.tensordot
+            # kwargs['tensordot'] = numpy.tensordot
             kwargs['einsum'] = numpy.einsum
+            # kwargs['block'] = ...
         return func(*args, **kwargs)
 
     return wrapper
