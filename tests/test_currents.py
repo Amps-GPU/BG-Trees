@@ -3,12 +3,16 @@ from lips import Particles
 import numpy
 from syngular import Field
 
-from bgtrees.currents import J_μ
+from bgtrees.currents import J_μ, another_j
 from bgtrees.metric_and_verticies import η
 from bgtrees.states import εm, εp
 
-lips.spinor_convention = "asymmetric"
+from bgtrees.finite_gpufields.finite_fields_tf import FiniteField
+from bgtrees.finite_gpufields.operations import ff_dot_product
 
+lips.spinor_convention = "asymmetric"
+chosenP = 2**31 - 19
+N_test = 2500
 
 def _generate_input(chosen_field, helconf, n=25):
     """Generate the momentum and polarization arrays using lips
@@ -52,11 +56,11 @@ def _generate_input(chosen_field, helconf, n=25):
 
 
 def test_ward_identity():
-    chosen_field = Field("finite field", 2**31 - 19, 1)
+    chosen_field = Field("finite field", chosenP, 1)
     # chosen_field = Field("mpc", 0, 32)
     helconf = "ppmmmm"
 
-    lmoms, lpols, _ = _generate_input(chosen_field, helconf, 25)
+    lmoms, lpols, _ = _generate_input(chosen_field, helconf, N_test)
 
     D = lmoms.shape[-1]
 
@@ -76,10 +80,10 @@ def test_ward_identity():
 
 
 def test_MHV_amplitude_in_D_eq_4():
-    chosen_field = Field("finite field", 2**31 - 19, 1)
+    chosen_field = Field("finite field", chosenP, 1)
     helconf = "ppmmmm"
 
-    lmoms, lpols, lPs = _generate_input(chosen_field, helconf, 25)
+    lmoms, lpols, lPs = _generate_input(chosen_field, helconf, N_test)
 
     D = lmoms.shape[-1]
 
@@ -87,6 +91,7 @@ def test_MHV_amplitude_in_D_eq_4():
     assert numpy.all(numpy.einsum("rim->rm", lmoms) == 0)
     # polarization . momentum is zero
     assert numpy.all(numpy.einsum("rim,mn,rin->ri", lmoms, η(D), lpols) == 0)
+
     # polarization . current is zero
     assert numpy.all(
         numpy.einsum(
@@ -96,3 +101,36 @@ def test_MHV_amplitude_in_D_eq_4():
         )
         == numpy.array([oPs("(32[12]^4)/([12][23][34][45][56][61])") for oPs in lPs])
     )
+
+
+def test_MHV_amplitude_in_GPU(verbose=False):
+    """Same test as above using the Finite Field container"""
+    chosen_field = Field("finite field", 2**31 - 19, 1)
+    helconf = "ppmmmm"
+    lmoms, lpols, lPs = _generate_input(chosen_field, helconf, N_test)
+
+    actual_val = numpy.array([oPs("(32[12]^4)/([12][23][34][45][56][61])") for oPs in lPs])
+
+    # Now make it into finite Finite Fields containers
+    def _make_to_container(array_of_arrays, p):
+        """Make any array of arrays or list of list into a finite field container"""
+        return FiniteField(array_of_arrays.astype(int), p)
+
+    ff_moms = _make_to_container(lmoms, chosenP)
+    ff_pols = _make_to_container(lpols, chosenP)
+
+    ret = another_j(ff_moms[:, 1:], ff_pols[:, 1:], put_propagator=False, verbose=verbose)
+    actual_ret = ff_dot_product(ff_pols[:, 0], ret)
+
+    numpy.testing.assert_allclose(actual_ret.values.numpy(), actual_val.astype(int))
+
+# from time import time
+# start = time()
+# test_MHV_amplitude_in_GPU(True)
+# end = time()
+# print(f"With container took: {end-start}")
+# 
+# start = time()
+# test_MHV_amplitude_in_D_eq_4()
+# end = time()
+# print(f"With default took: {end-start}")
