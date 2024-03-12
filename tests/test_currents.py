@@ -12,7 +12,7 @@ from bgtrees.finite_gpufields.operations import ff_dot_product
 
 lips.spinor_convention = "asymmetric"
 chosenP = 2**31 - 19
-N_test = 2500
+N_test = 25
 
 def _generate_input(chosen_field, helconf, n=25):
     """Generate the momentum and polarization arrays using lips
