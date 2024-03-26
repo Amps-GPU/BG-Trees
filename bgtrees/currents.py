@@ -69,15 +69,71 @@ def forest(lmoms, lpols, verbose=False, einsum=numpy.einsum):
     )
 
 
+@tf.function(reduce_retracing=True)
+def _compute_propagator(mom_slice, eta):
+    """Compute the propagator for a slice of momentum in FF.
+
+    Parameters
+    ----------
+        mom_slice: (events, particles, 4vec)
+        eta: (D,D)
+    """
+    tot_moms = tf.reduce_sum(mom_slice, axis=1)
+    prop_lhs = op.ff_dot_product_single_batch(tot_moms, eta)
+    prop_den = op.ff_dot_product(prop_lhs, tot_moms)  # rn, nr -> r
+    return (1.0 / prop_den).reshape_ff((-1, 1))
+
+
+@tf.function(reduce_retracing=True)
+def _vert_3_gluon(slice_left, slice_right):
+    """Computes the 3g vertex for the two slices coming in."""
+    moms_sl = tf.reduce_sum(slice_left, axis=1)
+    moms_sr = tf.reduce_sum(slice_right, axis=1)
+    return V3g(moms_sl, moms_sr, einsum=op.ff_tensor_product)
+
+
+@tf.function(reduce_retracing=True)
+def _contract_v3_current(vertex, jnu, jo):
+    """Contract the vertex with the two associated currents:
+
+    V3g   J    J -> J
+    rmno, rn, ro -> rm
+    """
+    tmp = op.ff_dot_product_tris(vertex, jo)  # rmno, ro -> rmn
+    return op.ff_dot_product(tmp, jnu)  # rmn, rn -> rm
+
+
+@tf.function(reduce_retracing=True)
+def _contract_v4_current(vertex, jnu, jo, jrho):
+    """Contract the vertex with the 3 associated currents:
+
+    V4g   J    J   J -> J
+    mnop, rn, ro, rp -> rm
+    """
+    # Abuse the axes of vg4_c (D, D, D, D)
+    # to fake later the product: rp, ponm -> ronm
+    D = vertex.shape[0]
+    v4 = vertex.reshape_ff((D, D * D * D))
+
+    tmp_1 = op.ff_dot_product_single_batch(jrho, v4)  # rp, pN -> rN
+    tmp_1 = tmp_1.reshape_ff((-1, D, D, D))  # rN -> ronm
+    tmp_1 = op.ff_index_permutation("ronm->rmno", tmp_1)
+
+    tmp_2 = op.ff_dot_product_tris(tmp_1, jo)  # rmno, ro -> rmn
+    return op.ff_dot_product(tmp_2, jnu)  # rmn, rn -> rm
+
+
 def another_j(lmoms, lpols, put_propagator=True, verbose=False):
     """
     Compute the current for an input array of shape
         (replicas, multiplicity, dimension)
     """
 
-    _, multiplicity, D = lmoms.shape
-    mmatrix = FiniteField(tf.transpose(η(D)), lpols.p)
-    vg4_c = FiniteField(tf.transpose(V4g(D)), lpols.p)
+    events, multiplicity, D = lmoms.shape
+    pprime = lpols.p
+    mmatrix = FiniteField(tf.transpose(η(D)), pprime)
+    vg4_c = FiniteField(tf.transpose(V4g(D)), pprime)
+    f_eta = FiniteField(η(D), lpols.p)
 
     @functools.lru_cache
     def _internal_j(a, b, put_propagator=True):
@@ -99,44 +155,23 @@ def another_j(lmoms, lpols, put_propagator=True, verbose=False):
 
         propagators = 1.0
         if put_propagator:
-            tot_moms = tf.reduce_sum(lmoms[:, a:b], axis=1)
-            prop_lhs_raw = tf.einsum("rm, mn->rn", tot_moms.values, η(D))
-            prop_lhs = FiniteField(prop_lhs_raw, tot_moms.p)
-            prop_den = op.ff_dot_product(prop_lhs, tot_moms)  # rn, nr -> r
-            propagators = (1.0 / prop_den).reshape_ff((-1, 1))
+            propagators = _compute_propagator(lmoms[:, a:b], f_eta)  # (r, 1)
 
-        first_list = []
+        jrmu = FiniteField(tf.zeros((events, D)), pprime)
         for i in range(1, mul):
-            moms_sl = tf.reduce_sum(lmoms[:, a : a + i], axis=1)
-            moms_sr = tf.reduce_sum(lmoms[:, a + i : b], axis=1)
-            v3val = V3g(moms_sl, moms_sr, einsum=op.ff_tensor_product)
+            v3val = _vert_3_gluon(lmoms[:, a : a + i], lmoms[:, a + i : b])  # (r,
 
-            jmu_one = _internal_j(a, a + i)
-            jmu_two = _internal_j(a + i, b)
+            jnu = _internal_j(a, a + i)
+            jo_3g = _internal_j(a + i, b)
+            # rmno, rn, ro -> rm
+            jrmu += _contract_v3_current(v3val, jnu, jo_3g)
 
-            tmp_lhs = op.ff_dot_product_tris(v3val, jmu_two)  # rmno, ro -> rmn
-            ret = op.ff_dot_product(tmp_lhs, jmu_one)  # rmn, rn -> rm
-            first_list.append(ret)
-
-        second_list = []
-        for i in range(1, mul - 1):
+            if i == mul - 1:
+                continue
             for j in range(i + 1, mul):
-                jmu_1 = _internal_j(a, a + i)
-                jmu_2 = _internal_j(a + i, a + j)
-                jmu_3 = _internal_j(a + j, b)
-
-                # Abuse the axes of vg4_c (D, D, D, D)
-                # to fake the product: rp, ponm -> ronm
-                v1 = vg4_c.reshape_ff((D, D * D * D))
-                v2 = op.ff_dot_product_single_batch(jmu_3, v1)  # rp, pN -> rN
-                tmp_1 = v2.reshape_ff((-1, D, D, D))  # rN -> ronm
-
-                tmp_1 = op.ff_index_permutation("ronm->rmno", tmp_1)
-                tmp_2 = op.ff_dot_product_tris(tmp_1, jmu_2)  # rmno, ro -> rmn
-                ret = op.ff_dot_product(tmp_2, jmu_1)  # rmn, rn -> rm
-                second_list.append(ret)
-
-        jrmu = sum(first_list) + sum(second_list)
+                jo_4g = _internal_j(a + i, a + j)
+                jrho_4g = _internal_j(a + j, b)
+                jrmu += _contract_v4_current(vg4_c, jnu, jo_4g, jrho_4g)
 
         jr_submu = op.ff_dot_product_single_batch(jrmu, mmatrix)
         return jr_submu * propagators
