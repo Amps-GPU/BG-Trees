@@ -1,6 +1,9 @@
+from math import sqrt
+
 import lips
 from lips import Particles
 import numpy
+import pytest
 from syngular import Field
 
 from bgtrees.currents import J_μ, another_j
@@ -57,47 +60,49 @@ def _generate_input(chosen_field, helconf, n=25):
     return lmoms, lpols, lPs
 
 
-def test_ward_identity(n_test=NTEST):
-    chosen_field = Field("finite field", chosenP, 1)
-    # chosen_field = Field("mpc", 0, 32)
+@pytest.mark.parametrize("field", [Field("finite field", chosenP, 1), Field("mpc", 0, 16)])
+def test_ward_identity(field, n_test=NTEST):
     helconf = "ppmmmm"
 
-    lmoms, lpols, _ = _generate_input(chosen_field, helconf, n_test)
+    lmoms, lpols, _ = _generate_input(field, helconf, n_test)
 
     D = lmoms.shape[-1]
 
     # momentum is conserved
-    assert numpy.all(numpy.einsum("rim->rm", lmoms) == 0)
+    assert numpy.all(numpy.vectorize(abs)(numpy.einsum("rim->rm", lmoms)) <= sqrt(field.tollerance))
     # polarization . momentum is zero
-    assert numpy.all(numpy.einsum("rim,mn,rin->ri", lmoms, η(D), lpols) == 0)
+    assert numpy.all(numpy.vectorize(abs)(numpy.einsum("rim,mn,rin->ri", lmoms, η(D), lpols)) <= sqrt(field.tollerance))
     # polarization . current is zero
     assert numpy.all(
-        numpy.einsum("rm,rm->r", lmoms[:, 0], J_μ(lmoms[:, 1:], lpols[:, 1:], put_propagator=False, verbose=True)) == 0
+        numpy.vectorize(abs)(
+            numpy.einsum("rm,rm->r", lmoms[:, 0], J_μ(lmoms[:, 1:], lpols[:, 1:], put_propagator=False, verbose=True))
+        )
+        <= sqrt(field.tollerance)
     )
 
 
-def _run_test_MHV_amplitude_in_D_eq_4(lmoms, lpols, target_result, verbose=False):
+def _run_test_MHV_amplitude_in_D_eq_4(field, lmoms, lpols, target_result, verbose=False):
     D = lmoms.shape[-1]
 
     # momentum is conserved
-    assert numpy.all(numpy.einsum("rim->rm", lmoms) == 0)
+    assert numpy.all(numpy.vectorize(abs)(numpy.einsum("rim->rm", lmoms)) <= sqrt(field.tollerance))
     # polarization . momentum is zero
-    assert numpy.all(numpy.einsum("rim,mn,rin->ri", lmoms, η(D), lpols) == 0)
-
+    assert numpy.all(numpy.vectorize(abs)(numpy.einsum("rim,mn,rin->ri", lmoms, η(D), lpols)) <= sqrt(field.tollerance))
     # polarization . current is zero
-    assert numpy.all(
-        numpy.einsum("rm,rm->r", lpols[:, 0], J_μ(lmoms[:, 1:], lpols[:, 1:], put_propagator=False, verbose=verbose))
-        == target_result
+    final_result = numpy.einsum(
+        "rm,rm->r", lpols[:, 0], J_μ(lmoms[:, 1:], lpols[:, 1:], put_propagator=False, verbose=verbose)
     )
+    diff = numpy.vectorize(abs)(final_result - target_result)
+    assert numpy.all(diff <= sqrt(field.tollerance))
 
 
-def test_MHV_amplitude_in_D_eq_4(verbose=False, n_test=NTEST):
-    chosen_field = Field("finite field", chosenP, 1)
+@pytest.mark.parametrize("field", [Field("finite field", chosenP, 1), Field("mpc", 0, 16)])
+def test_MHV_amplitude_in_D_eq_4(field, verbose=False, n_test=NTEST):
     helconf = "ppmmmm"
 
-    lmoms, lpols, lPs = _generate_input(chosen_field, helconf, n_test)
+    lmoms, lpols, lPs = _generate_input(field, helconf, n_test)
     target_result = numpy.array([oPs("(32[12]^4)/([12][23][34][45][56][61])") for oPs in lPs])
-    _run_test_MHV_amplitude_in_D_eq_4(lmoms, lpols, target_result, verbose=verbose)
+    _run_test_MHV_amplitude_in_D_eq_4(field, lmoms, lpols, target_result, verbose=verbose)
 
 
 def _run_test_mhv_amplitude_in_gpu(lmoms, lpols, target_result, verbose=False):
@@ -158,4 +163,4 @@ def test_MHV_amplitude_in_GPU(verbose=False, nt=NTEST):
 # #     print(f"With default took: {end-start}")
 #
 # for n, ela in timings:
-#     print(f"{n}   {ela:.5}")
+#     print(f"{n}   {ela:.5}")1G
