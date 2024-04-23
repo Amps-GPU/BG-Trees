@@ -16,7 +16,9 @@ from pyadic.finite_field import ModP, finite_field_sqrt
 import tensorflow as tf
 from tensorflow import experimental
 
-tf.config.run_functions_eagerly(True)
+EAGER_MODE = True
+# eager mode must be true since `extended_euclidean_algorithm` is not compilable yet
+tf.config.run_functions_eagerly(EAGER_MODE)
 
 
 @functools.lru_cache
@@ -34,6 +36,8 @@ def extended_euclidean_algorithm(n, p):
     so, s = tf.ones_like(n), tf.zeros_like(n)
     to, t = tf.zeros_like(n), tf.ones_like(p)
     ro, r = n, p
+
+    # https://github.com/GDeLaurentis/linac-dev/blob/master/linac/row_reduce.cu
 
     ones = tf.ones_like(r)
 
@@ -72,7 +76,8 @@ class FiniteField(experimental.ExtensionType):
             # Then the input n is already a Finite Field
             self.n = n.n
             self.p = n.p
-        elif np.iscomplex(n).any():
+        # Complex numbers at the moment cannot be compiled
+        elif EAGER_MODE and np.iscomplex(n).any():
             a = FiniteField(tf.math.real(n), p=p)
             b = FiniteField(tf.math.imag(n), p=p)
 

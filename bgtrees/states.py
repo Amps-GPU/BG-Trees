@@ -1,6 +1,6 @@
-from .metric_and_verticies import Gamma
-
 import numpy
+
+from .metric_and_verticies import Gamma
 
 
 def εp(oParticles, index, einsum=numpy.einsum):

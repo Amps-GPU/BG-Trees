@@ -1,10 +1,12 @@
+from lips.tools import Pauli, Pauli_bar
 import numpy
 
-from lips.tools import Pauli, Pauli_bar
 from .tools import gpu_constant, gpu_function
 
 Gamma = γμ = numpy.block([[numpy.zeros((4, 2, 2)), Pauli_bar], [Pauli, numpy.zeros((4, 2, 2))]])
-Gamma5 = γ5 = numpy.block([[numpy.identity(2), numpy.zeros((2, 2))], [numpy.zeros((2, 2)), -numpy.identity(2)]])
+Gamma5 = γ5 = numpy.block(
+    [[numpy.identity(2), numpy.zeros((2, 2))], [numpy.zeros((2, 2)), -numpy.identity(2)]]
+)
 
 
 @gpu_constant
@@ -30,8 +32,9 @@ def V4g(D):
 def V3g(lp1, lp2, einsum=numpy.einsum):
     """3-gluon vertex, upper indices μνρ, D-dimensional"""
     D = lp1.shape[1]
+    mm = η(D)
     return (
-        einsum("mn,rl->rlmn", η(D), (lp1 - lp2))
-        + 2 * einsum("nl,rm->rlmn", η(D), lp2)
-        - 2 * einsum("lm,rn->rlmn", η(D), lp1)
+        einsum("mn,rl->rlmn", mm, (lp1 - lp2))
+        + 2 * einsum("nl,rm->rlmn", mm, lp2)
+        - 2 * einsum("lm,rn->rlmn", mm, lp1)
     )

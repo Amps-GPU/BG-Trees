@@ -14,6 +14,20 @@ from .cuda_operators import wrapper_dot_product, wrapper_dot_product_single_batc
 from .finite_fields_tf import FiniteField
 
 
+def ff_einsum_generic(einstr, *args):
+    """Tries to automagically select the right operation
+    given the einstr
+    currently only works for 
+        ff_tensor_product
+        ff_index_permutation
+    """
+    if len(args) == 1:
+        return ff_index_permutation(einstr, *args)
+    elif len(args) == 2:
+        return ff_tensor_product(einstr, *args)
+    raise NotImplementedError(f"Automatic understanding of contractions not implemented for {einstr}")
+
+
 def ff_index_permutation(einstr, x):
     """Uses tf.einsum to permute the index of the tensor x
     Since this is simply an index permutation, it goes transparently to tf.einsum
@@ -28,8 +42,21 @@ def ff_dot_product(x, y):
 
     Equivalent einsum string: "rij,rjk->rik"
     """
-    x_vals = x.values
-    y_vals = y.values
+    y_vals = y
+    x_vals = x
+    p = None
+
+    if isinstance(y, FiniteField):
+        y_vals = y.values
+        p = y.p
+
+    if isinstance(x, FiniteField):
+        x_vals = x.values
+        p = x.p
+
+    if p is None:
+        # You should not be using this function if this is the case
+        raise ValueError("Wrong call of ff_dot_product")
 
     if len(x.shape) > 3 or len(y.shape) > 3:
         raise ValueError("This function cannot deal with more than 2 axes")
@@ -48,7 +75,7 @@ def ff_dot_product(x, y):
     ret = wrapper_dot_product(x_vals, y_vals)
     if dims_to_squeeze:
         ret = tf.squeeze(ret, dims_to_squeeze)
-    return FiniteField(ret, x.p)
+    return FiniteField(ret, p)
 
 
 def ff_dot_product_single_batch(x, y):
@@ -160,5 +187,21 @@ def ff_tensor_product(einstr, x, y):
             # Don't allow ff_tensor_product to be used as a substitute for squeeze() or sum
             raise ValueError(f"Index {i} is contracted. Not allowed")
 
-    ret = tf.einsum(einstr, x.values, y.values)
-    return FiniteField(ret, x.p)
+    y_vals = y
+    x_vals = x
+    p = None
+
+    if isinstance(y, FiniteField):
+        y_vals = y.values
+        p = y.p
+
+    if isinstance(x, FiniteField):
+        x_vals = x.values
+        p = x.p
+
+    if p is None:
+        # You should not be using this function if this is the case
+        raise ValueError("Wrong call of ff_tensor_product")
+        
+    ret = tf.einsum(einstr, x_vals, y_vals)
+    return FiniteField(ret, p)
