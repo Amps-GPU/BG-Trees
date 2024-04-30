@@ -7,11 +7,12 @@ from bgtrees.currents import J_μ, another_j
 from bgtrees.finite_gpufields.finite_fields_tf import FiniteField
 from bgtrees.finite_gpufields.operations import ff_dot_product
 from bgtrees.metric_and_verticies import η
+from bgtrees.settings import settings
 from bgtrees.states import εm, εp
 
 lips.spinor_convention = "asymmetric"
 chosenP = 2**31 - 19
-N_test = 25
+NTEST = 25
 
 
 def _generate_input(chosen_field, helconf, n=25):
@@ -55,12 +56,12 @@ def _generate_input(chosen_field, helconf, n=25):
     return lmoms, lpols, lPs
 
 
-def test_ward_identity():
+def test_ward_identity(n_test=NTEST):
     chosen_field = Field("finite field", chosenP, 1)
     # chosen_field = Field("mpc", 0, 32)
     helconf = "ppmmmm"
 
-    lmoms, lpols, _ = _generate_input(chosen_field, helconf, N_test)
+    lmoms, lpols, _ = _generate_input(chosen_field, helconf, n_test)
 
     D = lmoms.shape[-1]
 
@@ -70,16 +71,11 @@ def test_ward_identity():
     assert numpy.all(numpy.einsum("rim,mn,rin->ri", lmoms, η(D), lpols) == 0)
     # polarization . current is zero
     assert numpy.all(
-        numpy.einsum(
-            "rm,rm->r",
-            lmoms[:, 0],
-            J_μ(lmoms[:, 1:], lpols[:, 1:], put_propagator=False, verbose=True),
-        )
-        == 0
+        numpy.einsum("rm,rm->r", lmoms[:, 0], J_μ(lmoms[:, 1:], lpols[:, 1:], put_propagator=False, verbose=True)) == 0
     )
 
 
-def _run_test_MHV_amplitude_in_D_eq_4(lmoms, lpols, lPs, verbose=False):
+def _run_test_MHV_amplitude_in_D_eq_4(lmoms, lpols, target_result, verbose=False):
     D = lmoms.shape[-1]
 
     # momentum is conserved
@@ -89,25 +85,24 @@ def _run_test_MHV_amplitude_in_D_eq_4(lmoms, lpols, lPs, verbose=False):
 
     # polarization . current is zero
     assert numpy.all(
-        numpy.einsum(
-            "rm,rm->r",
-            lpols[:, 0],
-            J_μ(lmoms[:, 1:], lpols[:, 1:], put_propagator=False, verbose=verbose),
-        )
-        == numpy.array([oPs("(32[12]^4)/([12][23][34][45][56][61])") for oPs in lPs])
+        numpy.einsum("rm,rm->r", lpols[:, 0], J_μ(lmoms[:, 1:], lpols[:, 1:], put_propagator=False, verbose=verbose))
+        == target_result
     )
 
 
-def test_MHV_amplitude_in_D_eq_4(verbose=False):
+def test_MHV_amplitude_in_D_eq_4(verbose=False, n_test=NTEST):
     chosen_field = Field("finite field", chosenP, 1)
     helconf = "ppmmmm"
 
-    lmoms, lpols, lPs = _generate_input(chosen_field, helconf, N_test)
-    _run_test_MHV_amplitude_in_D_eq_4(lmoms, lpols, lPs, verbose=verbose)
+    lmoms, lpols, lPs = _generate_input(chosen_field, helconf, n_test)
+    target_result = numpy.array([oPs("(32[12]^4)/([12][23][34][45][56][61])") for oPs in lPs])
+    _run_test_MHV_amplitude_in_D_eq_4(lmoms, lpols, target_result, verbose=verbose)
 
 
-def _run_test_mhv_amplitude_in_gpu(lmoms, lpols, lPs, verbose=False):
-    actual_val = numpy.array([oPs("(32[12]^4)/([12][23][34][45][56][61])") for oPs in lPs])
+def _run_test_mhv_amplitude_in_gpu(lmoms, lpols, target_result, verbose=False):
+    # This function can only be run with the GPU enabled
+    prev_setting = settings.use_gpu
+    settings.use_gpu = True
 
     # Now make it into finite Finite Fields containers
     def _make_to_container(array_of_arrays, p):
@@ -120,30 +115,44 @@ def _run_test_mhv_amplitude_in_gpu(lmoms, lpols, lPs, verbose=False):
     ret = another_j(ff_moms[:, 1:], ff_pols[:, 1:], put_propagator=False, verbose=verbose)
     actual_ret = ff_dot_product(ff_pols[:, 0], ret)
 
-    numpy.testing.assert_allclose(actual_ret.values.numpy(), actual_val.astype(int))
+    numpy.testing.assert_allclose(actual_ret.values.numpy(), target_result.astype(int))
+    settings.use_gpu = prev_setting
 
 
-def test_MHV_amplitude_in_GPU(verbose=False, nt=N_test):
+def test_MHV_amplitude_in_GPU(verbose=False, nt=NTEST):
     """Same test as above using the Finite Field container"""
     chosen_field = Field("finite field", 2**31 - 19, 1)
     helconf = "ppmmmm"
     lmoms, lpols, lPs = _generate_input(chosen_field, helconf, nt)
-    _run_test_mhv_amplitude_in_gpu(lmoms, lpols, lPs, verbose=verbose)
+    target_result = numpy.array([oPs("(32[12]^4)/([12][23][34][45][56][61])") for oPs in lPs])
+    _run_test_mhv_amplitude_in_gpu(lmoms, lpols, target_result, verbose=verbose)
 
 
 # chosen_field = Field("finite field", 2**31 - 19, 1)
 # helconf = "ppmmmm"
-# lmoms, lpols, lPs = _generate_input(chosen_field, helconf, N_test)
-# # Compile
-# test_MHV_amplitude_in_GPU(False, nt=2)
-# from time import time
 #
-# start = time()
-# _run_test_mhv_amplitude_in_gpu(lmoms, lpols, lPs)
-# end = time()
-# print(f"With container took: {end-start}")
+# timings = []
 #
-# start = time()
-# _run_test_MHV_amplitude_in_D_eq_4(lmoms, lpols, lPs)
-# end = time()
-# print(f"With default took: {end-start}")
+# for exp_n in range(1, 6):
+#     test_n = numpy.power(10, exp_n)
+#     lmoms, lpols, lPs = _generate_input(chosen_field, helconf, test_n)
+#     target_result = numpy.array([oPs("(32[12]^4)/([12][23][34][45][56][61])") for oPs in lPs])
+#     # Compile
+#     test_MHV_amplitude_in_GPU(False, nt=2)
+#     from time import time
+#
+#     #
+#     print("Begin calculation...")
+#     start = time()
+#     _run_test_mhv_amplitude_in_gpu(lmoms, lpols, target_result)
+#     end = time()
+#     print(f"With container took: {end-start}")
+#     timings.append((test_n, end - start))
+# #
+# #     start = time()
+# #     _run_test_MHV_amplitude_in_D_eq_4(lmoms, lpols, target_result)
+# #     end = time()
+# #     print(f"With default took: {end-start}")
+#
+# for n, ela in timings:
+#     print(f"{n}   {ela:.5}")

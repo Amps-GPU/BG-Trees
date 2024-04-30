@@ -17,7 +17,7 @@ from .finite_fields_tf import FiniteField
 def ff_einsum_generic(einstr, *args):
     """Tries to automagically select the right operation
     given the einstr
-    currently only works for 
+    currently only works for
         ff_tensor_product
         ff_index_permutation
     """
@@ -201,7 +201,7 @@ def ff_tensor_product(einstr, x, y):
 
     if p is None:
         # You should not be using this function if this is the case
-        raise ValueError("Wrong call of ff_tensor_product")
-        
+        raise ValueError("Wrong call of ff_tensor_product, non FF type being used")
+
     ret = tf.einsum(einstr, x_vals, y_vals)
     return FiniteField(ret, p)
