@@ -33,10 +33,7 @@ def J_μ(lmoms, lpols, put_propagator=True, depth=0, verbose=False, einsum=numpy
                 [
                     einsum(
                         "rmno,rn,ro->rm",
-                        V3g(
-                            einsum("rim->rm", lmoms[:, a : a + i, :]),
-                            einsum("rim->rm", lmoms[:, a + i : b, :]),
-                        ),
+                        V3g(einsum("rim->rm", lmoms[:, a : a + i, :]), einsum("rim->rm", lmoms[:, a + i : b, :])),
                         _J_μ(a, a + i),
                         _J_μ(a + i, b),
                     )
@@ -44,13 +41,7 @@ def J_μ(lmoms, lpols, put_propagator=True, depth=0, verbose=False, einsum=numpy
                 ]
             ) + sum(
                 [
-                    einsum(
-                        "mnop,rn,ro,rp->rm",
-                        V4g(D),
-                        _J_μ(a, a + i),
-                        _J_μ(a + i, a + j),
-                        _J_μ(a + j, b),
-                    )
+                    einsum("mnop,rn,ro,rp->rm", V4g(D), _J_μ(a, a + i), _J_μ(a + i, a + j), _J_μ(a + j, b))
                     for i in range(1, multiplicity - 1)
                     for j in range(i + 1, multiplicity)
                 ]
@@ -62,11 +53,7 @@ def J_μ(lmoms, lpols, put_propagator=True, depth=0, verbose=False, einsum=numpy
 
 
 def forest(lmoms, lpols, verbose=False, einsum=numpy.einsum):
-    return einsum(
-        "rm,rm->r",
-        lpols[:, 0],
-        J_μ(lmoms[:, 1:], lpols[:, 1:], put_propagator=False, verbose=verbose),
-    )
+    return einsum("rm,rm->r", lpols[:, 0], J_μ(lmoms[:, 1:], lpols[:, 1:], put_propagator=False, verbose=verbose))
 
 
 @tf.function(reduce_retracing=True)

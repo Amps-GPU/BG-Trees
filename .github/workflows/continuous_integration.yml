@@ -40,10 +40,6 @@ jobs:
         pip install .[tests]
         pip install flake8 pyproject-flake8
 
-    - name: Lint with flake8
-      run: |
-        pflake8 bgtrees/ --count --statistics --verbose
-
     - name: Test with pytest
       run: |
         pytest |& tee coverage.txt
@@ -54,6 +50,10 @@ jobs:
         else
           echo "pytest passed with exit code 0"
         fi
+
+    - name: Lint with flake8
+      run: |
+        pflake8 bgtrees/ --count --statistics --verbose
 
     - name: Run update-badges script
       run: |
