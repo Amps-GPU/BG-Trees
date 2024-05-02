@@ -70,7 +70,7 @@ generate-setup-file = false
 script = "build.py"
 
 [tool.flake8]
-ignore = ["E741", "W504", "W503"]
+ignore = ["E741", "W504", "W503", "E203"]
 max-line-length = 120
 
 [tool.black]

@@ -53,7 +53,7 @@ jobs:
 
     - name: Lint with flake8
       run: |
-        pflake8 bgtrees/ --count --statistics --verbose
+        pflake8 bgtrees/ --count --statistics --verbose --config pyproject.toml
 
     - name: Run update-badges script
       run: |
