@@ -20,6 +20,8 @@ EAGER_MODE = True
 # eager mode must be true since `extended_euclidean_algorithm` is not compilable yet
 tf.config.run_functions_eagerly(EAGER_MODE)
 
+DTYPE = tf.int64
+
 
 @functools.lru_cache
 def get_imaginary_for(p):
@@ -30,37 +32,55 @@ def get_imaginary_for(p):
     return modi.n
 
 
+# TF extended euclidean algorithm
+@tf.function
+def loop_check(r, *args):
+    return tf.math.reduce_any(r != 0)
+
+
+@tf.function(
+    input_signature=[
+        tf.TensorSpec(shape=[None], dtype=DTYPE),
+        tf.TensorSpec(shape=[None], dtype=DTYPE),
+        tf.TensorSpec(shape=[None], dtype=DTYPE),
+        tf.TensorSpec(shape=[None], dtype=DTYPE),
+    ]
+)
+def loop_body(r, s, ro, so):
+    # Stop the computation for the entries for which r == 0
+    stop = r == 0
+
+    # Compute the quotient, but protecting it from 0s
+    divisor = tf.where(stop, tf.cast(1, dtype=tf.int64), r)
+    qu = ro // divisor
+
+    rnew = tf.where(stop, r, ro - qu * r)
+    snew = tf.where(stop, s, so - qu * s)
+
+    ro = tf.where(stop, ro, r)
+    so = tf.where(stop, so, s)
+
+    return rnew, snew, ro, so
+
+
+@tf.function(input_signature=[tf.TensorSpec(shape=[None], dtype=DTYPE), tf.TensorSpec(shape=[], dtype=DTYPE)])
 def extended_euclidean_algorithm(n, p):
-    """Extended euclidean algorithm implementation (copying from pyadic)"""
-    p = tf.cast(p, dtype=tf.int64)
+    """Extended euclidean algorithm implementation (copying from pyadic).
+    Note that this function is not compilable so it need to be decorated
+    with `py_function`.
+    """
     so, s = tf.ones_like(n), tf.zeros_like(n)
-    to, t = tf.zeros_like(n), tf.ones_like(p)
-    ro, r = n, p
+    ro = n
+    r = tf.ones_like(ro) * p
 
     # https://github.com/GDeLaurentis/linac-dev/blob/master/linac/row_reduce.cu
 
-    ones = tf.ones_like(r)
+    r, s, ro, so = tf.while_loop(loop_check, loop_body, (r, s, ro, so), parallel_iterations=1)
 
-    # Note that this loop won't end until coefficients are found for the entire tensor
-    while tf.math.reduce_any(r != 0):
-        # Stop the computation for the entries for which r == 0
-        stop = r == 0
+    #     if ro.numpy().any() != 1:
+    #         raise ZeroDivisionError("Inverse cannot be taken")
 
-        # Compute the quotient, but protecting it from 0s
-        divisor = tf.where(stop, ones, r)
-        qu = ro // divisor
-
-        rnew = tf.where(stop, r, ro - qu * r)
-        snew = tf.where(stop, s, so - qu * s)
-        tnew = tf.where(stop, t, to - qu * t)
-
-        ro = tf.where(stop, ro, r)
-        so = tf.where(stop, so, s)
-        to = tf.where(stop, to, t)
-
-        r, s, t = rnew, snew, tnew
-
-    return so, to, ro
+    return so
 
 
 class FiniteField(experimental.ExtensionType):
@@ -77,10 +97,9 @@ class FiniteField(experimental.ExtensionType):
             self.n = n.n
             self.p = n.p
         # Complex numbers at the moment cannot be compiled
-        elif EAGER_MODE and np.iscomplex(n).any():
+        elif tf.executing_eagerly() and np.iscomplex(n).any():
             a = FiniteField(tf.math.real(n), p=p)
             b = FiniteField(tf.math.imag(n), p=p)
-
             self.n = (a + b * get_imaginary_for(p)).n
             self.p = p
         else:
@@ -92,9 +111,7 @@ class FiniteField(experimental.ExtensionType):
         assert self.n.dtype.is_integer, "FiniteFields must be integers"
 
     def _inv(self):
-        s, _, c = extended_euclidean_algorithm(self.n, self.p)
-        if c.numpy().any() != 1:
-            raise ZeroDivisionError(f"{self} has no inverse")
+        s = extended_euclidean_algorithm(self.n, self.p)
         return self.__class__(s, self.p)
 
     # Primitive operations
@@ -247,44 +264,16 @@ def finite_field_squeeze(input, axis, name=None):
 
 
 ######
-
-
-def _finite_field_reduce(red_op, input_tensor, axis=None, keepdims=False):
-    """Auxiliar function to reduce Finite Field containers"""
-    if axis is None:
-        all_axes = list(range(len(input_tensor.shape)))
-        return _finite_field_reduce(red_op, input_tensor, axis=all_axes, keepdims=keepdims)
-
-    # Hopefully the exception block is compiled away upon first pass...
-    try:
-        res = input_tensor
-        for ax in axis:
-            res = _finite_field_reduce(red_op, res, axis=ax, keepdims=True)
-        if not keepdims:
-            res = tf.squeeze(res, axis=axis)
-        return res
-    except TypeError:
-        pass
-
-    # First separate the FF in the axis that we want to sum over
-    unstacked_ff = tf.unstack(input_tensor, axis=axis)
-    summed_ff = functools.reduce(red_op, unstacked_ff)
-    # Add a dummy dimension if the user asked for it
-    if keepdims:
-        summed_ff = tf.expand_dims(summed_ff, axis)
-    return summed_ff
-
-
 @experimental.dispatch_for_api(tf.reduce_sum, {"input_tensor": FiniteField})
 def finite_field_reduce_sum(input_tensor, axis=None, keepdims=False, name=None):
     """Override the reduce_sum operation for a FiniteField container"""
-    return _finite_field_reduce(operator.add, input_tensor, axis=axis, keepdims=keepdims)
+    return FiniteField(tf.reduce_sum(input_tensor.n, axis=axis, keepdims=keepdims), input_tensor.p)
 
 
 @experimental.dispatch_for_api(tf.reduce_prod, {"input_tensor": FiniteField})
 def finite_field_reduce_prod(input_tensor, axis=None, keepdims=False, name=None):
     """Override the reduce_sum operation for a FiniteField container"""
-    return _finite_field_reduce(operator.mul, input_tensor, axis=axis, keepdims=keepdims)
+    return FiniteField(tf.reduce_prod(input_tensor.n, axis=axis, keepdims=keepdims), input_tensor.p)
 
 
 def oinsum(eq, *arrays):

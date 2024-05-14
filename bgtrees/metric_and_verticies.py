@@ -1,6 +1,8 @@
 from lips.tools import Pauli, Pauli_bar
 import numpy
+import tensorflow as tf
 
+from .settings import settings
 from .tools import gpu_constant, gpu_function
 
 Gamma = γμ = numpy.block([[numpy.zeros((4, 2, 2)), Pauli_bar], [Pauli, numpy.zeros((4, 2, 2))]])
@@ -27,9 +29,12 @@ def V4g(D):
 
 
 @gpu_function
+@tf.function(reduce_retracing=True)
 def V3g(lp1, lp2, einsum=numpy.einsum):
     """3-gluon vertex, upper indices μνρ, D-dimensional"""
     D = lp1.shape[1]
+    if D is None:
+        D = settings.D
     mm = η(D)
     return (
         einsum("mn,rl->rlmn", mm, (lp1 - lp2)) + 2 * einsum("nl,rm->rlmn", mm, lp2) - 2 * einsum("lm,rn->rlmn", mm, lp1)

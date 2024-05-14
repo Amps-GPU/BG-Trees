@@ -14,6 +14,7 @@ from .cuda_operators import wrapper_dot_product, wrapper_dot_product_single_batc
 from .finite_fields_tf import FiniteField
 
 
+@tf.function(reduce_retracing=True)
 def ff_einsum_generic(einstr, *args):
     """Tries to automagically select the right operation
     given the einstr
@@ -28,6 +29,7 @@ def ff_einsum_generic(einstr, *args):
     raise NotImplementedError(f"Automatic understanding of contractions not implemented for {einstr}")
 
 
+@tf.function(reduce_retracing=True)
 def ff_index_permutation(einstr, x):
     """Uses tf.einsum to permute the index of the tensor x
     Since this is simply an index permutation, it goes transparently to tf.einsum
@@ -36,12 +38,18 @@ def ff_index_permutation(einstr, x):
     return FiniteField(ret, x.p)
 
 
-def ff_dot_product(x, y):
+@tf.function(reduce_retracing=True)
+def ff_dot_product(x, y, rank_x=None, rank_y=None):
     """Perform a dot product between two batched Finite Fields
     Uses a CUDA kernel underneath
 
     Equivalent einsum string: "rij,rjk->rik"
     """
+    if rank_x is None:
+        rank_x = len(x.shape)
+    if rank_y is None:
+        rank_y = len(y.shape)
+
     y_vals = y
     x_vals = x
     p = None
@@ -58,17 +66,17 @@ def ff_dot_product(x, y):
         # You should not be using this function if this is the case
         raise ValueError("Wrong call of ff_dot_product")
 
-    if len(x.shape) > 3 or len(y.shape) > 3:
+    if rank_x > 3 or rank_y > 3:
         raise ValueError("This function cannot deal with more than 2 axes")
 
     dims_to_squeeze = []
-    if len(x.shape) == 2:
+    if rank_x == 2:
         # If rank is 2, then it _must_ correspond, for the first input to
         # (batch, contracted_index); for now don't think about special cases
         x_vals = tf.expand_dims(x_vals, axis=1)
         dims_to_squeeze.append(1)
 
-    if len(y.shape) == 2:
+    if rank_y == 2:
         y_vals = tf.expand_dims(y_vals, axis=2)
         dims_to_squeeze.append(2)
 
@@ -78,26 +86,32 @@ def ff_dot_product(x, y):
     return FiniteField(ret, p)
 
 
-def ff_dot_product_single_batch(x, y):
+@tf.function(reduce_retracing=True)
+def ff_dot_product_single_batch(x, y, rank_x=None, rank_y=None):
     """Perform a dot product between one batch (x) and unbatched (y) Finite Fields
     Uses a CUDA kernel underneath
 
     Equivalent einsum string: "rij,jk->rik"
     """
+    if rank_x is None:
+        rank_x = len(x.shape)
+    if rank_y is None:
+        rank_y = len(y.shape)
+
     x_vals = x.values
     y_vals = y.values
 
-    if len(x.shape) > 3 or len(y.shape) > 2:
+    if rank_x > 3 or rank_y > 2:
         raise ValueError("This function cannot deal with more than 2 axes")
 
     dims_to_squeeze = []
-    if len(x.shape) == 2:
+    if rank_x == 2:
         # If rank is 2, then it _must_ correspond, for the first input to
         # (batch, contracted_index); for now don't think about special cases
         x_vals = tf.expand_dims(x_vals, axis=1)
         dims_to_squeeze.append(1)
 
-    if len(y.shape) == 1:
+    if rank_y == 1:
         y_vals = tf.expand_dims(y_vals, axis=1)
         dims_to_squeeze.append(2)
 
@@ -107,7 +121,8 @@ def ff_dot_product_single_batch(x, y):
     return FiniteField(ret, x.p)
 
 
-def ff_dot_product_tris(x, y):
+@tf.function(reduce_retracing=True)
+def ff_dot_product_tris(x, y, rank_x=None, rank_y=None):
     """Wrapper for a product rijk->rklmn with k contracted
     reshapes the input and then applies wrapper_dot_product
     transitional function during development
@@ -119,48 +134,64 @@ def ff_dot_product_tris(x, y):
     it works by collapsing the ij and lm axes, performing the operation rAk, rkB -> rAB
     and then unrolling back A and B
     """
+    if rank_x is None:
+        rank_x = len(x.shape)
+    if rank_y is None:
+        rank_y = len(y.shape)
+
     shape_back = list(x.shape)[:-1] + list(y.shape)[2:]
 
-    if len(x.shape) > 4 or len(y.shape) > 4:
+    if rank_x > 4 or rank_y > 4:
         raise ValueError("This function cannot deal with more than 3 axes")
 
-    if len(x.shape) == 4:
+    if rank_x == 4:
         # Reshape this to collapse the intermediate ij axis
-        new_x_shape = (x.shape[0], x.shape[1] * x.shape[2], x.shape[3])
+        new_x_shape = (-1, x.shape[1] * x.shape[2], x.shape[3])
         x = x.reshape_ff(new_x_shape)
+        rank_x -= 1
 
-    if len(y.shape) == 4:
+    if rank_y == 4:
         # Collapse the intermediate lm axis
-        new_y_shape = (y.shape[0], y.shape[1], y.shape[2] * y.shape[3])
+        new_y_shape = (-1, y.shape[1], y.shape[2] * y.shape[3])
         y = y.reshape_ff(new_y_shape)
+        rank_y -= 1
 
-    ret = ff_dot_product(x, y)
+    shape_back[0] = -1
+    ret = ff_dot_product(x, y, rank_x=rank_x, rank_y=rank_y)
     return ret.reshape_ff(shape_back)
 
 
-def ff_dot_product_tris_single_batch(x, y):
+@tf.function(reduce_retracing=True)
+def ff_dot_product_tris_single_batch(x, y, rank_x=None, rank_y=None):
     """Single batched version of ff_dot_product_tris
     TODO: it should eventually go as well
     """
+    if rank_x is None:
+        rank_x = len(x.shape)
+    if rank_y is None:
+        rank_y = len(y.shape)
     shape_back = list(x.shape)[:-1] + list(y.shape)[1:]
 
-    if len(x.shape) > 4 or len(y.shape) > 3:
+    if rank_x > 4 or rank_y > 3:
         raise ValueError("This function cannot deal with more than 3 axes")
 
-    if len(x.shape) == 4:
+    if rank_x == 4:
         # Reshape this to collapse the intermediate ij axis
         new_x_shape = (x.shape[0], x.shape[1] * x.shape[2], x.shape[3])
         x = x.reshape_ff(new_x_shape)
+        rank_x -= 1
 
-    if len(y.shape) == 3:
+    if rank_y == 3:
         # Collapse the intermediate lm axis
         new_y_shape = (y.shape[0], y.shape[1] * y.shape[2])
         y = y.reshape_ff(new_y_shape)
+        rank_y -= 1
 
-    ret = ff_dot_product_single_batch(x, y)
+    ret = ff_dot_product_single_batch(x, y, rank_x=rank_x, rank_y=rank_y)
     return ret.reshape_ff(shape_back)
 
 
+@tf.function(reduce_retracing=True)
 def ff_tensor_product(einstr, x, y):
     """
     Wrapper to apply the tensor product for Finite Fields

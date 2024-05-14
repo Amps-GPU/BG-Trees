@@ -7,6 +7,7 @@ from bgtrees.finite_gpufields import operations as op
 from bgtrees.finite_gpufields.finite_fields_tf import FiniteField
 
 from .metric_and_verticies import V3g, V4g, η
+from .settings import settings
 
 
 # @gpu_function
@@ -66,8 +67,8 @@ def _compute_propagator(mom_slice, eta):
         eta: (D,D)
     """
     tot_moms = tf.reduce_sum(mom_slice, axis=1)
-    prop_lhs = op.ff_dot_product_single_batch(tot_moms, eta)
-    prop_den = op.ff_dot_product(prop_lhs, tot_moms)  # rn, nr -> r
+    prop_lhs = op.ff_dot_product_single_batch(tot_moms, eta, rank_x=3, rank_y=2)
+    prop_den = op.ff_dot_product(prop_lhs, tot_moms, rank_x=2, rank_y=2)  # rn, nr -> r
     return (1.0 / prop_den).reshape_ff((-1, 1))
 
 
@@ -86,8 +87,8 @@ def _contract_v3_current(vertex, jnu, jo):
     V3g   J    J -> J
     rmno, rn, ro -> rm
     """
-    tmp = op.ff_dot_product_tris(vertex, jo)  # rmno, ro -> rmn
-    return op.ff_dot_product(tmp, jnu)  # rmn, rn -> rm
+    tmp = op.ff_dot_product_tris(vertex, jo, rank_x=4, rank_y=2)  # rmno, ro -> rmn
+    return op.ff_dot_product(tmp, jnu, rank_x=3, rank_y=2)  # rmn, rn -> rm
 
 
 @tf.function(reduce_retracing=True)
@@ -100,14 +101,16 @@ def _contract_v4_current(vertex, jnu, jo, jrho):
     # Abuse the axes of vg4_c (D, D, D, D)
     # to fake later the product: rp, ponm -> ronm
     D = vertex.shape[0]
+    if D is None:
+        D = settings.D
     v4 = vertex.reshape_ff((D, D * D * D))
 
-    tmp_1 = op.ff_dot_product_single_batch(jrho, v4)  # rp, pN -> rN
+    tmp_1 = op.ff_dot_product_single_batch(jrho, v4, rank_x=2, rank_y=2)  # rp, pN -> rN
     tmp_1 = tmp_1.reshape_ff((-1, D, D, D))  # rN -> ronm
     tmp_1 = op.ff_index_permutation("ronm->rmno", tmp_1)
 
-    tmp_2 = op.ff_dot_product_tris(tmp_1, jo)  # rmno, ro -> rmn
-    return op.ff_dot_product(tmp_2, jnu)  # rmn, rn -> rm
+    tmp_2 = op.ff_dot_product_tris(tmp_1, jo, rank_x=4, rank_y=2)  # rmno, ro -> rmn
+    return op.ff_dot_product(tmp_2, jnu, rank_x=3, rank_y=2)  # rmn, rn -> rm
 
 
 def another_j(lmoms, lpols, put_propagator=True, verbose=False):
@@ -115,8 +118,9 @@ def another_j(lmoms, lpols, put_propagator=True, verbose=False):
     Compute the current for an input array of shape
         (replicas, multiplicity, dimension)
     """
-
     events, multiplicity, D = lmoms.shape
+    # Set up the dimensionality
+    settings.D = D
     pprime = lpols.p
     mmatrix = FiniteField(tf.transpose(η(D)), pprime)
     vg4_c = FiniteField(tf.transpose(V4g(D)), pprime)
@@ -137,7 +141,7 @@ def another_j(lmoms, lpols, put_propagator=True, verbose=False):
         # Compute the current current multiplicity
         mul = b - a
         if mul == 1:
-            ret = op.ff_dot_product_single_batch(lpols[:, a], mmatrix)
+            ret = op.ff_dot_product_single_batch(lpols[:, a], mmatrix, rank_x=2, rank_y=2)
             return ret
 
         propagators = 1.0
@@ -160,7 +164,7 @@ def another_j(lmoms, lpols, put_propagator=True, verbose=False):
                 jrho_4g = _internal_j(a + j, b)
                 jrmu += _contract_v4_current(vg4_c, jnu, jo_4g, jrho_4g)
 
-        jr_submu = op.ff_dot_product_single_batch(jrmu, mmatrix)
+        jr_submu = op.ff_dot_product_single_batch(jrmu, mmatrix, rank_x=2, rank_y=2)
         return jr_submu * propagators
 
     return _internal_j(0, multiplicity, put_propagator=put_propagator)
