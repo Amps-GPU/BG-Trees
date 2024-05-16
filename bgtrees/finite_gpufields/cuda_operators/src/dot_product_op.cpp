@@ -5,7 +5,7 @@
 
 #include "tensorflow/core/framework/op.h"
 #include "tensorflow/core/framework/shape_inference.h"
-#include "dot_product.h"
+#include "dot_product.h" // IWYU pragma: keep
 
 REGISTER_OP("DotProduct")
 .Attr("T: {int32, int64}")

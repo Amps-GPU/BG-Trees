@@ -24,11 +24,11 @@ run: $(target_lib)
 run_cpu: $(target_lib)
 	@CUDA_VISIBLE_DEVICES="" python py_dotproduct.py
 
-%.so: %_op.cpp %.cuo %.cpp
+%.so: src/%_op.cpp src/%.cuo src/%.cpp
 	@echo "[$(CXX)] Compiling and linking operation"
 	@$(CXX) $(CXFLAGS) $(KERNEL) -o $@ $^ $(TF_CFLAGS) $(TF_LFLAGS)
 
-%.cuo: %.cu
+src/%.cuo: src/%.cu
 	@echo "[$(NCC)] Compiling cuda kernel..."
 	@$(NCC) $(NCCFLAGS) -c -o $@ $^ $(TF_CFLAGS)
 
