@@ -29,7 +29,7 @@ def operator_compilation():
     # clean the directory
     sp.run(["make", "clean"], cwd=CUDA_FOLDER)
 
-    if nvcc_available and tf_cuda and False:
+    if nvcc_available and tf_cuda:# and False:
         kerdef = "KERNEL_DEF='-D GOOGLE_CUDA=1'"
     else:
         kerdef = "KERNEL_DEF=''"

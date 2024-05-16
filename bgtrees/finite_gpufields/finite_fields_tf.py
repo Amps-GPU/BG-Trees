@@ -8,6 +8,7 @@
     Note: all operations between two FiniteField assume that p is going to always be prime
     and the same. Any checks should have occur before getting to this function.
 """
+
 import functools
 import operator
 
@@ -16,9 +17,17 @@ from pyadic.finite_field import ModP, finite_field_sqrt
 import tensorflow as tf
 from tensorflow import experimental
 
-EAGER_MODE = True
-# eager mode must be true since `extended_euclidean_algorithm` is not compilable yet
-tf.config.run_functions_eagerly(EAGER_MODE)
+# EAGER_MODE = True
+# # eager mode must be true since `extended_euclidean_algorithm` is not compilable yet
+# tf.config.run_functions_eagerly(EAGER_MODE)
+
+# To inspect the memory usage (it doesn't work well in Titan V)
+# physical_devices = tf.config.list_physical_devices('GPU')
+# try:
+#   tf.config.experimental.set_memory_growth(physical_devices[0], True)
+# except:
+#   # Invalid device or cannot modify virtual devices once initialized.
+#   pass
 
 DTYPE = tf.int64
 

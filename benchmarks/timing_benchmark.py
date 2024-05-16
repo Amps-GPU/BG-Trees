@@ -54,7 +54,7 @@ if __name__ == "__main__":
     _ = another_j(ff_moms[:2, 1:], ff_pols[:2, 1:], put_propagator=False, verbose=False)
 
     print("Starting the run...")
-    batch_size = 20000
+    batch_size = 100000
 
     for nev in list_of_n:
         start = time()
