@@ -21,7 +21,7 @@ def operator_compilation():
     # TODO: make them fail loudly (check=True)
     # TODO: make them fallback to CPU-only compilation instead of loudly failing
     kerdef = ""
-    ops_to_compile = ["dot_product"]
+    ops_to_compile = ["dot_product", "inverse"]
 
     # Check whether nvcc is available
     nvcc_available = shutil.which("nvcc") is not None
