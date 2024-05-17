@@ -14,12 +14,14 @@ namespace myfunctor {
 
     // Dot Produt
     template <typename T, bool singleBatch>
-        __global__ void DotProductCudaKernel(const int o1, const int o2, const int size_i, const T* x, const T* y, T* out) {
+        __global__ void DotProductCudaKernel(const int bs, const int o1, const int o2, const int size_i, const T* x, const T* y, T* out) {
             /*
                 o1 and o2 correspond to the size of the first and last outer indices
                 size_i is the size of the uncontracted index
             */
             const int n = blockIdx.x * blockDim.x + threadIdx.x;
+            if (n >= bs) return;
+
             const int b_o = n*o1*o2;
             const int b_x = n*o1*size_i;
 
@@ -52,10 +54,10 @@ namespace myfunctor {
                     o1 and o2 correspond to the size of the first and last outer indices
                     size_i is the size of the uncontracted index
                 */ 
-                int thread_per_block = 1;
+                int thread_per_block = 1000;
                 int block_count = static_cast<int>(std::ceil(static_cast<double>(bs) / thread_per_block));
                 DotProductCudaKernel<T, singleBatch>
-                    <<<block_count, thread_per_block, 0, d.stream()>>>(o1, o2, size_i, x, y, out);
+                    <<<block_count, thread_per_block, 0, d.stream()>>>(bs, o1, o2, size_i, x, y, out);
             }
         };
 

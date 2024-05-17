@@ -128,7 +128,7 @@ def test_MHV_amplitude_in_GPU(verbose=False, nt=NTEST):
     _run_test_mhv_amplitude_in_gpu(lmoms, lpols, target_result, verbose=verbose)
 
 
-#test_MHV_amplitude_in_GPU()
+# test_MHV_amplitude_in_GPU()
 
 # chosen_field = Field("finite field", 2**31 - 19, 1)
 # helconf = "ppmmmm"

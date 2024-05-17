@@ -13,10 +13,11 @@ namespace myfunctor {
     typedef Eigen::GpuDevice GPUDevice;
 
     template <typename T>
-        __global__ void InverseCudaKernel(const T* x, T* out) {
+        __global__ void InverseCudaKernel(const int bs, const T* x, T* out) {
 		// Copied from: https://github.com/GDeLaurentis/linac-dev/blob/master/linac/row_reduce.cu
         
             const int n = blockIdx.x * blockDim.x + threadIdx.x;
+            if (n >= bs) return;
 
             T quotient, old_old_r, old_old_s, old_old_t;
             T b = PMOD;
@@ -53,10 +54,10 @@ namespace myfunctor {
     template <typename T>
         struct InverseFunctor<GPUDevice, T> {
             void operator()(const GPUDevice& d, const int bs, const T* x, T* out) {
-                int thread_per_block = 1;
+                int thread_per_block = 1000;
                 int block_count = static_cast<int>(std::ceil(static_cast<double>(bs) / thread_per_block));
                 InverseCudaKernel<T>
-                    <<<block_count, thread_per_block, 0, d.stream()>>>(x, out);
+                    <<<block_count, thread_per_block, 0, d.stream()>>>(bs, x, out);
             }
         };
  

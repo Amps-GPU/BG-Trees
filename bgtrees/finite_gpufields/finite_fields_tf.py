@@ -20,9 +20,9 @@ from tensorflow import experimental
 
 from .cuda_operators import wrapper_inverse
 
-# EAGER_MODE = True
-# # eager mode must be true since `extended_euclidean_algorithm` is not compilable yet
-# tf.config.run_functions_eagerly(EAGER_MODE)
+EAGER_MODE = True
+# eager mode must be true since `extended_euclidean_algorithm` is not compilable yet
+tf.config.run_functions_eagerly(EAGER_MODE)
 
 # To inspect the memory usage (it doesn't work well in Titan V)
 # physical_devices = tf.config.list_physical_devices('GPU')
@@ -279,16 +279,45 @@ def finite_field_squeeze(input, axis, name=None):
 
 
 ######
+def _finite_field_reduce(red_op, input_tensor, axis=None, keepdims=False):
+    """Auxiliar function to reduce Finite Field containers"""
+    if axis is None:
+        all_axes = list(range(len(input_tensor.shape)))
+        return _finite_field_reduce(red_op, input_tensor, axis=all_axes, keepdims=keepdims)
+
+    # Hopefully the exception block is compiled away upon first pass...
+    try:
+        res = input_tensor
+        for ax in axis:
+            res = _finite_field_reduce(red_op, res, axis=ax, keepdims=True)
+        if not keepdims:
+            res = tf.squeeze(res, axis=axis)
+        return res
+    except TypeError:
+        pass
+
+    @tf.py_function(Tout=tf.int64)
+    def reduce_me(itensor):
+        # First separate the FF in the axis that we want to sum over
+        unstacked_ff = tf.unstack(itensor, axis=axis)
+        summed_ff = functools.reduce(red_op, unstacked_ff)
+        # Add a dummy dimension if the user asked for it
+        if keepdims:
+            summed_ff = tf.expand_dims(summed_ff, axis)
+        return summed_ff.n
+
+    return FiniteField(reduce_me(input_tensor), input_tensor.p)
+
 @experimental.dispatch_for_api(tf.reduce_sum, {"input_tensor": FiniteField})
 def finite_field_reduce_sum(input_tensor, axis=None, keepdims=False, name=None):
     """Override the reduce_sum operation for a FiniteField container"""
-    return FiniteField(tf.reduce_sum(input_tensor.n, axis=axis, keepdims=keepdims), input_tensor.p)
+    return _finite_field_reduce(operator.add, input_tensor, axis=axis, keepdims=keepdims)
 
 
 @experimental.dispatch_for_api(tf.reduce_prod, {"input_tensor": FiniteField})
 def finite_field_reduce_prod(input_tensor, axis=None, keepdims=False, name=None):
     """Override the reduce_sum operation for a FiniteField container"""
-    return FiniteField(tf.reduce_prod(input_tensor.n, axis=axis, keepdims=keepdims), input_tensor.p)
+    return _finite_field_reduce(operator.mul, input_tensor, axis=axis, keepdims=keepdims)
 
 
 def oinsum(eq, *arrays):
