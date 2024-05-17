@@ -32,7 +32,7 @@ src/%.cuo: src/%.cu
 	@echo "[$(NCC)] Compiling cuda kernel..."
 	@$(NCC) $(NCCFLAGS) -c -o $@ $^ $(TF_CFLAGS)
 
-.PRECIOUS: %.cuo %.o %.so
+.PRECIOUS: src/%.cuo src/%.o %.so
 
 clean:
-	rm -f *.so *.o *.cuo
+	rm -f *.so src/*. src/*.cuo

@@ -52,7 +52,7 @@ namespace myfunctor {
                     o1 and o2 correspond to the size of the first and last outer indices
                     size_i is the size of the uncontracted index
                 */ 
-                int thread_per_block = 10;
+                int thread_per_block = 1;
                 int block_count = static_cast<int>(std::ceil(static_cast<double>(bs) / thread_per_block));
                 DotProductCudaKernel<T, singleBatch>
                     <<<block_count, thread_per_block, 0, d.stream()>>>(o1, o2, size_i, x, y, out);

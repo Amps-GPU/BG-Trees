@@ -11,11 +11,14 @@
 
 import functools
 import operator
+from time import time
 
 import numpy as np
 from pyadic.finite_field import ModP, finite_field_sqrt
 import tensorflow as tf
 from tensorflow import experimental
+
+from .cuda_operators import wrapper_inverse
 
 # EAGER_MODE = True
 # # eager mode must be true since `extended_euclidean_algorithm` is not compilable yet
@@ -83,8 +86,11 @@ def extended_euclidean_algorithm(n, p):
     r = tf.ones_like(ro) * p
 
     # https://github.com/GDeLaurentis/linac-dev/blob/master/linac/row_reduce.cu
-
+    #     start = time()
     r, s, ro, so = tf.while_loop(loop_check, loop_body, (r, s, ro, so), parallel_iterations=1)
+    #     end = time()
+    #     print(f"-> {end-start}s")
+    #     print(n)
 
     #     if ro.numpy().any() != 1:
     #         raise ZeroDivisionError("Inverse cannot be taken")
@@ -114,13 +120,13 @@ class FiniteField(experimental.ExtensionType):
         else:
             n = tf.cast(n, dtype=tf.int64)
             self.p = p
-            self.n = tf.math.floormod(n, p)
+            self.n = tf.math.floormod(n, tf.cast(p, dtype=tf.int64))
 
     def __validate__(self):
         assert self.n.dtype.is_integer, "FiniteFields must be integers"
 
     def _inv(self):
-        s = extended_euclidean_algorithm(self.n, self.p)
+        s = wrapper_inverse(self.n)
         return self.__class__(s, self.p)
 
     # Primitive operations
