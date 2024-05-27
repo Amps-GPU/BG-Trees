@@ -29,7 +29,7 @@ jobs:
       run: |
         pip install .[tests]
         # Try building by hand just in case
-        python build.py --only-cpu
+        python build.py --cpu-only
 
     - name: Test with pytest
       run: |

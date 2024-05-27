@@ -13,6 +13,7 @@ from bgtrees.states import εm, εp
 lips.spinor_convention = "asymmetric"
 chosenP = 2**31 - 19
 NTEST = 25
+settings.run_tf_eagerly()
 
 
 def _generate_input(chosen_field, helconf, n=25):
