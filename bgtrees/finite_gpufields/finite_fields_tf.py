@@ -11,7 +11,6 @@
 
 import functools
 import operator
-from time import time
 
 import numpy as np
 from pyadic.finite_field import ModP, finite_field_sqrt
@@ -19,10 +18,6 @@ import tensorflow as tf
 from tensorflow import experimental
 
 from .cuda_operators import wrapper_inverse
-
-EAGER_MODE = True
-# eager mode must be true since `extended_euclidean_algorithm` is not compilable yet
-tf.config.run_functions_eagerly(EAGER_MODE)
 
 # To inspect the memory usage (it doesn't work well in Titan V)
 # physical_devices = tf.config.list_physical_devices('GPU')
@@ -42,60 +37,6 @@ def get_imaginary_for(p):
     if not isinstance(modi, ModP):
         raise ValueError(f"i is not in F({p=})")
     return modi.n
-
-
-# TF extended euclidean algorithm
-@tf.function
-def loop_check(r, *args):
-    return tf.math.reduce_any(r != 0)
-
-
-@tf.function(
-    input_signature=[
-        tf.TensorSpec(shape=[None], dtype=DTYPE),
-        tf.TensorSpec(shape=[None], dtype=DTYPE),
-        tf.TensorSpec(shape=[None], dtype=DTYPE),
-        tf.TensorSpec(shape=[None], dtype=DTYPE),
-    ]
-)
-def loop_body(r, s, ro, so):
-    # Stop the computation for the entries for which r == 0
-    stop = r == 0
-
-    # Compute the quotient, but protecting it from 0s
-    divisor = tf.where(stop, tf.cast(1, dtype=tf.int64), r)
-    qu = ro // divisor
-
-    rnew = tf.where(stop, r, ro - qu * r)
-    snew = tf.where(stop, s, so - qu * s)
-
-    ro = tf.where(stop, ro, r)
-    so = tf.where(stop, so, s)
-
-    return rnew, snew, ro, so
-
-
-@tf.function(input_signature=[tf.TensorSpec(shape=[None], dtype=DTYPE), tf.TensorSpec(shape=[], dtype=DTYPE)])
-def extended_euclidean_algorithm(n, p):
-    """Extended euclidean algorithm implementation (copying from pyadic).
-    Note that this function is not compilable so it need to be decorated
-    with `py_function`.
-    """
-    so, s = tf.ones_like(n), tf.zeros_like(n)
-    ro = n
-    r = tf.ones_like(ro) * p
-
-    # https://github.com/GDeLaurentis/linac-dev/blob/master/linac/row_reduce.cu
-    #     start = time()
-    r, s, ro, so = tf.while_loop(loop_check, loop_body, (r, s, ro, so), parallel_iterations=1)
-    #     end = time()
-    #     print(f"-> {end-start}s")
-    #     print(n)
-
-    #     if ro.numpy().any() != 1:
-    #         raise ZeroDivisionError("Inverse cannot be taken")
-
-    return so
 
 
 class FiniteField(experimental.ExtensionType):
@@ -307,6 +248,7 @@ def _finite_field_reduce(red_op, input_tensor, axis=None, keepdims=False):
         return summed_ff.n
 
     return FiniteField(reduce_me(input_tensor), input_tensor.p)
+
 
 @experimental.dispatch_for_api(tf.reduce_sum, {"input_tensor": FiniteField})
 def finite_field_reduce_sum(input_tensor, axis=None, keepdims=False, name=None):

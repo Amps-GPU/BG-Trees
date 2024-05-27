@@ -1,4 +1,5 @@
 # Build script ran by poetry to compile the cuda kernels before installation
+from argparse import ArgumentParser
 from pathlib import Path
 import shutil
 import subprocess as sp
@@ -10,11 +11,11 @@ CUDA_FOLDER = Path("bgtrees") / "finite_gpufields" / "cuda_operators"
 
 def fake_cuda(op_name):
     """Create an empty file to avoid the compilation of the cuda kernel"""
-    tmp = CUDA_FOLDER / f"{op_name}.cuo"
+    tmp = CUDA_FOLDER / "src" / f"{op_name}.cuo"
     tmp.write_text("")
 
 
-def operator_compilation():
+def operator_compilation(compile_gpu=True):
     """Try to compile the cuda kernels before installation
     Note, these commands will all fail silently
     """
@@ -29,7 +30,7 @@ def operator_compilation():
     # clean the directory
     sp.run(["make", "clean"], cwd=CUDA_FOLDER)
 
-    if nvcc_available and tf_cuda:# and False:
+    if nvcc_available and tf_cuda and compile_gpu:
         kerdef = "KERNEL_DEF='-D GOOGLE_CUDA=1'"
     else:
         kerdef = "KERNEL_DEF=''"
@@ -42,4 +43,9 @@ def operator_compilation():
 
 
 if __name__ == "__main__":
-    operator_compilation()
+
+    parser = ArgumentParser()
+    parser.add_argument("--cpu-only", action="store_true")
+    args = parser.parse_args()
+
+    operator_compilation(compile_gpu=not args.cpu_only)
