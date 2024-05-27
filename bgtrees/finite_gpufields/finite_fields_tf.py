@@ -8,6 +8,7 @@
     Note: all operations between two FiniteField assume that p is going to always be prime
     and the same. Any checks should have occur before getting to this function.
 """
+
 import functools
 import operator
 
@@ -16,9 +17,17 @@ from pyadic.finite_field import ModP, finite_field_sqrt
 import tensorflow as tf
 from tensorflow import experimental
 
-EAGER_MODE = True
-# eager mode must be true since `extended_euclidean_algorithm` is not compilable yet
-tf.config.run_functions_eagerly(EAGER_MODE)
+from .cuda_operators import wrapper_inverse
+
+# To inspect the memory usage (it doesn't work well in Titan V)
+# physical_devices = tf.config.list_physical_devices('GPU')
+# try:
+#   tf.config.experimental.set_memory_growth(physical_devices[0], True)
+# except:
+#   # Invalid device or cannot modify virtual devices once initialized.
+#   pass
+
+DTYPE = tf.int64
 
 
 @functools.lru_cache
@@ -28,39 +37,6 @@ def get_imaginary_for(p):
     if not isinstance(modi, ModP):
         raise ValueError(f"i is not in F({p=})")
     return modi.n
-
-
-def extended_euclidean_algorithm(n, p):
-    """Extended euclidean algorithm implementation (copying from pyadic)"""
-    p = tf.cast(p, dtype=tf.int64)
-    so, s = tf.ones_like(n), tf.zeros_like(n)
-    to, t = tf.zeros_like(n), tf.ones_like(p)
-    ro, r = n, p
-
-    # https://github.com/GDeLaurentis/linac-dev/blob/master/linac/row_reduce.cu
-
-    ones = tf.ones_like(r)
-
-    # Note that this loop won't end until coefficients are found for the entire tensor
-    while tf.math.reduce_any(r != 0):
-        # Stop the computation for the entries for which r == 0
-        stop = r == 0
-
-        # Compute the quotient, but protecting it from 0s
-        divisor = tf.where(stop, ones, r)
-        qu = ro // divisor
-
-        rnew = tf.where(stop, r, ro - qu * r)
-        snew = tf.where(stop, s, so - qu * s)
-        tnew = tf.where(stop, t, to - qu * t)
-
-        ro = tf.where(stop, ro, r)
-        so = tf.where(stop, so, s)
-        to = tf.where(stop, to, t)
-
-        r, s, t = rnew, snew, tnew
-
-    return so, to, ro
 
 
 class FiniteField(experimental.ExtensionType):
@@ -77,24 +53,21 @@ class FiniteField(experimental.ExtensionType):
             self.n = n.n
             self.p = n.p
         # Complex numbers at the moment cannot be compiled
-        elif EAGER_MODE and np.iscomplex(n).any():
+        elif tf.executing_eagerly() and np.iscomplex(n).any():
             a = FiniteField(tf.math.real(n), p=p)
             b = FiniteField(tf.math.imag(n), p=p)
-
             self.n = (a + b * get_imaginary_for(p)).n
             self.p = p
         else:
             n = tf.cast(n, dtype=tf.int64)
             self.p = p
-            self.n = tf.math.floormod(n, p)
+            self.n = tf.math.floormod(n, tf.cast(p, dtype=tf.int64))
 
     def __validate__(self):
         assert self.n.dtype.is_integer, "FiniteFields must be integers"
 
     def _inv(self):
-        s, _, c = extended_euclidean_algorithm(self.n, self.p)
-        if c.numpy().any() != 1:
-            raise ZeroDivisionError(f"{self} has no inverse")
+        s = wrapper_inverse(self.n)
         return self.__class__(s, self.p)
 
     # Primitive operations
@@ -247,8 +220,6 @@ def finite_field_squeeze(input, axis, name=None):
 
 
 ######
-
-
 def _finite_field_reduce(red_op, input_tensor, axis=None, keepdims=False):
     """Auxiliar function to reduce Finite Field containers"""
     if axis is None:
@@ -266,13 +237,17 @@ def _finite_field_reduce(red_op, input_tensor, axis=None, keepdims=False):
     except TypeError:
         pass
 
-    # First separate the FF in the axis that we want to sum over
-    unstacked_ff = tf.unstack(input_tensor, axis=axis)
-    summed_ff = functools.reduce(red_op, unstacked_ff)
-    # Add a dummy dimension if the user asked for it
-    if keepdims:
-        summed_ff = tf.expand_dims(summed_ff, axis)
-    return summed_ff
+    @tf.py_function(Tout=tf.int64)
+    def reduce_me(itensor):
+        # First separate the FF in the axis that we want to sum over
+        unstacked_ff = tf.unstack(itensor, axis=axis)
+        summed_ff = functools.reduce(red_op, unstacked_ff)
+        # Add a dummy dimension if the user asked for it
+        if keepdims:
+            summed_ff = tf.expand_dims(summed_ff, axis)
+        return summed_ff.n
+
+    return FiniteField(reduce_me(input_tensor), input_tensor.p)
 
 
 @experimental.dispatch_for_api(tf.reduce_sum, {"input_tensor": FiniteField})

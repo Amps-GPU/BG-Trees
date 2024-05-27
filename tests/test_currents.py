@@ -13,6 +13,7 @@ from bgtrees.states import εm, εp
 lips.spinor_convention = "asymmetric"
 chosenP = 2**31 - 19
 NTEST = 25
+settings.run_tf_eagerly()
 
 
 def _generate_input(chosen_field, helconf, n=25):
@@ -127,6 +128,8 @@ def test_MHV_amplitude_in_GPU(verbose=False, nt=NTEST):
     target_result = numpy.array([oPs("(32[12]^4)/([12][23][34][45][56][61])") for oPs in lPs])
     _run_test_mhv_amplitude_in_gpu(lmoms, lpols, target_result, verbose=verbose)
 
+
+# test_MHV_amplitude_in_GPU()
 
 # chosen_field = Field("finite field", 2**31 - 19, 1)
 # helconf = "ppmmmm"

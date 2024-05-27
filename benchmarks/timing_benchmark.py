@@ -54,14 +54,19 @@ if __name__ == "__main__":
     _ = another_j(ff_moms[:2, 1:], ff_pols[:2, 1:], put_propagator=False, verbose=False)
 
     print("Starting the run...")
+    batch_size = 500000
 
     for nev in list_of_n:
-        momenta = ff_moms[:nev]
-        polariz = ff_pols[:nev]
-
         start = time()
-        ret = another_j(momenta, polariz, put_propagator=False, verbose=False)
-        final_result = ff_dot_product(momenta[:, :0], ret)
+
+        for from_ev in range(0, nev, batch_size):
+            to_ev = np.minimum(from_ev + batch_size, nev)
+            momenta = ff_moms[from_ev:to_ev]
+            polariz = ff_pols[from_ev:to_ev]
+
+            ret = another_j(momenta, polariz, put_propagator=False, verbose=False)
+            final_result = ff_dot_product(momenta[:, :0], ret)
+
         end = time()
         print(f"n = {nev} took {end-start:.5}s")
 #
