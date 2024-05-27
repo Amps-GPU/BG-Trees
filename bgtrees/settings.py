@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+import numpy as np
 import tensorflow as tf
 
 
@@ -7,6 +8,7 @@ import tensorflow as tf
 class Settings:
     use_gpu: bool = False
     D: int = 4
+    dtype: type = np.int64
 
     def run_tf_eagerly(self):
         tf.config.run_functions_eagerly(True)

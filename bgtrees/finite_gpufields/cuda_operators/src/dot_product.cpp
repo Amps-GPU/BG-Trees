@@ -32,7 +32,7 @@ struct myfunctor::DotProductFunctor<CPUDevice, T, singleBatch> {
                 for (int j = 0; j < o2; j++) {
                     T res = 0;
                     for (int k = 0; k < size_i; k++) {
-                        const int tmp =
+                        const T tmp =
                             (x[i * size_i + k + b_x] * y[k * o2 + j + b_y]) %
                             PMOD;
                         res = (res + tmp) % PMOD;

@@ -12,7 +12,7 @@ Gamma5 = γ5 = numpy.block([[numpy.identity(2), numpy.zeros((2, 2))], [numpy.zer
 @gpu_constant
 def MinkowskiMetric(D):
     """D-dimensional Minkowski metric in the mostly negative convention."""
-    return numpy.diag([1] + [-1] * (D - 1))
+    return numpy.diag([1] + [-1] * (D - 1)).astype(settings.dtype)
 
 
 η = MinkowskiMetric

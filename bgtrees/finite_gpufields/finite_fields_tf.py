@@ -17,6 +17,7 @@ from pyadic.finite_field import ModP, finite_field_sqrt
 import tensorflow as tf
 from tensorflow import experimental
 
+from ..settings import settings
 from .cuda_operators import wrapper_inverse
 
 # To inspect the memory usage (it doesn't work well in Titan V)
@@ -26,8 +27,6 @@ from .cuda_operators import wrapper_inverse
 # except:
 #   # Invalid device or cannot modify virtual devices once initialized.
 #   pass
-
-DTYPE = tf.int64
 
 
 @functools.lru_cache
@@ -59,9 +58,9 @@ class FiniteField(experimental.ExtensionType):
             self.n = (a + b * get_imaginary_for(p)).n
             self.p = p
         else:
-            n = tf.cast(n, dtype=tf.int64)
+            n = tf.cast(n, dtype=settings.dtype)
             self.p = p
-            self.n = tf.math.floormod(n, tf.cast(p, dtype=tf.int64))
+            self.n = tf.math.floormod(n, tf.cast(p, dtype=settings.dtype))
 
     def __validate__(self):
         assert self.n.dtype.is_integer, "FiniteFields must be integers"
@@ -128,7 +127,7 @@ class FiniteField(experimental.ExtensionType):
             else:
                 panshape.append(m - i)
                 axis = a
-        zeros = tf.zeros(panshape, dtype=tf.int64)
+        zeros = tf.zeros(panshape, dtype=settings.dtype)
         if front:
             new_values = tf.concat([zeros, self.n], axis=axis)
         else:
@@ -237,7 +236,7 @@ def _finite_field_reduce(red_op, input_tensor, axis=None, keepdims=False):
     except TypeError:
         pass
 
-    @tf.py_function(Tout=tf.int64)
+    @tf.py_function(Tout=settings.dtype)
     def reduce_me(itensor):
         # First separate the FF in the axis that we want to sum over
         unstacked_ff = tf.unstack(itensor, axis=axis)
