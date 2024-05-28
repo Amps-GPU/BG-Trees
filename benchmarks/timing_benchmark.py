@@ -59,15 +59,18 @@ if __name__ == "__main__":
     for nev in list_of_n:
         start = time()
 
+        total_final_results = []
         for from_ev in range(0, nev, batch_size):
             to_ev = np.minimum(from_ev + batch_size, nev)
             momenta = ff_moms[from_ev:to_ev]
             polariz = ff_pols[from_ev:to_ev]
 
-            ret = another_j(momenta, polariz, put_propagator=False, verbose=False)
-            final_result = ff_dot_product(momenta[:, :0], ret)
+            ret = another_j(momenta[:, 1:], polariz[:, 1:], put_propagator=False, verbose=False)
+            final_result = ff_dot_product(polariz[:, 0], ret)
+            total_final_results.append(final_result)
 
         end = time()
         print(f"n = {nev} took {end-start:.5}s")
-#
-#     # np.testing.assert_allclose(final_result.values.numpy(), load_info["target_result"])
+
+#         finres = np.concatenate([i.values.numpy() for i in total_final_results])
+#         np.testing.assert_allclose(finres, load_info["target"][:nev])

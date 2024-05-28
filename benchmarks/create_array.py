@@ -1,3 +1,5 @@
+from argparse import ArgumentParser
+
 import lips
 from lips import Particles
 import numpy as np
@@ -49,18 +51,44 @@ def generate_input(chosen_field, helconf, n=25):
     return lmoms, lpols, lPs
 
 
-chosen_p = 2**31 - 19
-chosen_field = Field("finite field", chosen_p, 1)
-helconf = "ppmmmm"
-n_generate = int(1e5)
+if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument("--legs", type=int, default=6)
+    parser.add_argument("--events", type=int, default=int(1e5))
+    parser.add_argument("--output", type=str)
+    args = parser.parse_args()
 
-# Generate the arrays
-lmoms, lpols, lPs = generate_input(chosen_field, helconf, n_generate)
-# Make them into integers
-lmoms_int = lmoms.astype(int)
-lpols_int = lpols.astype(int)
-# Create target results for the string below
-target_results = np.array([oPs("(32[12]^4)/([12][23][34][45][56][61])") for oPs in lPs]).astype(int)
+    chosen_p = 2**31 - 19
+    chosen_field = Field("finite field", chosen_p, 1)
 
-# Now save all information
-np.savez("benchmark_data.npz", lmoms=lmoms_int, lpols=lpols_int, target=target_results, p=chosen_p)
+    helconf = "pp" + "m" * (args.legs - 2)
+    nparticles = len(helconf)
+
+    # Generate the arrays
+    lmoms, lpols, lPs = generate_input(chosen_field, helconf, args.events)
+    # Make them into integers
+    lmoms_int = lmoms.astype(int)
+    lpols_int = lpols.astype(int)
+
+    # Create target results
+    parke_taylor_den = ""
+    for i in range(nparticles):
+        n1 = i + 1
+        n2 = i + 2
+        if n2 > nparticles:
+            n2 = 1
+        parke_taylor_den += f"[{n1}{n2}]"
+
+    fact = -((-2) ** (nparticles - 1))
+    parke_taylor_str = f"({fact}[12]^4)/({parke_taylor_den})"
+    target_results = np.array([oPs(parke_taylor_str) for oPs in lPs]).astype(int)
+
+    # Now save all information
+    if args.output is None:
+        file_out = f"benchmark_data_n{nparticles}.npz"
+    else:
+        file_out = f"{args.output}"
+        if not file_out.endswith(".npz"):
+            file_out += ".npz"
+    np.savez(file_out, lmoms=lmoms_int, lpols=lpols_int, target=target_results, p=chosen_p)
+    print(f"Results saved to {file_out}")
