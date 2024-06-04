@@ -218,99 +218,58 @@ def finite_field_squeeze(input, axis, name=None):
     return FiniteField(new_n, input.p)
 
 
-######
-def _finite_field_reduce(red_op, input_tensor, axis=None, keepdims=False):
-    """Auxiliar function to reduce Finite Field containers"""
+def _ff_reduce_internal(accumulated, next_element, operation=operator.add, p=settings.tf_p):
+    """Apply the operation ``operation`` inmediately taking the %
+    Acts on integers
+    """
+    return tf.math.floormod(operation(accumulated, next_element), p)
+
+
+@functools.lru_cache
+def _dispatch_ff_reduction(operation, p):
+    """Dispatchs the _ff_reduce_internal with the right settings"""
+    return tf.function(functools.partial(_ff_reduce_internal, operation=operation, p=p))
+
+
+@tf.function
+def _ff_reduce_single_axis(input_tensor, axis, operation=operator.add, p=settings.p):
+    """Utilize the numpy experimental API and foldl to apply a reduction to the input tensor.
+    Acts on integer, the calling function should then make it into a FF.
+    """
+    reduce_fn = _dispatch_ff_reduction(operation, p)
+    operate_on = tf.experimental.numpy.moveaxis(input_tensor, axis, 0)
+    return tf.foldl(reduce_fn, operate_on)
+
+
+@tf.function
+def _ff_reduce(input_tensor, axis, keepdims, operation):
+    raw_input = input_tensor.n
+
     if axis is None:
-        all_axes = list(range(len(input_tensor.shape)))
-        return _finite_field_reduce(red_op, input_tensor, axis=all_axes, keepdims=keepdims)
+        ret = raw_input
+        for _ in range(raw_input.ndim):
+            ret = _ff_reduce_single_axis(ret, 0, operation=operation)
 
-    # Hopefully the exception block is compiled away upon first pass...
-    try:
-        res = input_tensor
-        for ax in axis:
-            res = _finite_field_reduce(red_op, res, axis=ax, keepdims=True)
-        if not keepdims:
-            res = tf.squeeze(res, axis=axis)
-        return res
-    except TypeError:
-        pass
-
-    @tf.py_function(Tout=settings.dtype)
-    def reduce_me(itensor):
-        # First separate the FF in the axis that we want to sum over
-        unstacked_ff = tf.unstack(itensor, axis=axis)
-        summed_ff = functools.reduce(red_op, unstacked_ff)
-        # Add a dummy dimension if the user asked for it
         if keepdims:
-            summed_ff = tf.expand_dims(summed_ff, axis)
-        return summed_ff.n
+            for _ in range(raw_input.ndim):
+                ret = tf.expand_dims(ret)
 
-    return FiniteField(reduce_me(input_tensor), input_tensor.p)
+    else:
+        ret = _ff_reduce_single_axis(raw_input, axis, operation=operation)
+
+        if keepdims:
+            ret = tf.expand_dims(ret, axis)
+
+    return FiniteField(ret, input_tensor.p)
 
 
 @experimental.dispatch_for_api(tf.reduce_sum, {"input_tensor": FiniteField})
 def finite_field_reduce_sum(input_tensor, axis=None, keepdims=False, name=None):
     """Override the reduce_sum operation for a FiniteField container"""
-    return _finite_field_reduce(operator.add, input_tensor, axis=axis, keepdims=keepdims)
+    return _ff_reduce(input_tensor, axis, keepdims, operation=operator.add)
 
 
 @experimental.dispatch_for_api(tf.reduce_prod, {"input_tensor": FiniteField})
 def finite_field_reduce_prod(input_tensor, axis=None, keepdims=False, name=None):
     """Override the reduce_sum operation for a FiniteField container"""
-    return _finite_field_reduce(operator.mul, input_tensor, axis=axis, keepdims=keepdims)
-
-
-def oinsum(eq, *arrays):
-    """A ``einsum`` implementation for ``numpy`` object arrays."""
-    lhs, output = eq.split("->")
-    inputs = lhs.split(",")
-
-    sizes = {}
-    for term, array in zip(inputs, arrays):
-        for k, d in zip(term, array.shape):
-            sizes[k] = d
-
-    out_size = tuple(sizes[k] for k in output)
-    out = np.empty(out_size, dtype=object)
-
-    inner = [k for k in sizes if k not in output]
-    inner_size = [sizes[k] for k in inner]
-
-    for coo_o in np.ndindex(*out_size):
-        coord = dict(zip(output, coo_o))
-
-        def gen_inner_sum():
-            for coo_i in np.ndindex(*inner_size):
-                coord.update(dict(zip(inner, coo_i)))
-
-                locs = []
-                for term in inputs:
-                    locs.append(tuple(coord[k] for k in term))
-
-                elements = []
-                for array, loc in zip(arrays, locs):
-                    elements.append(array[loc])
-
-                yield functools.reduce(operator.mul, elements)
-
-        tmp = functools.reduce(operator.add, gen_inner_sum())
-        out[coo_o] = tmp
-
-    # if the output is made of finite fields, take them out
-    if isinstance(tmp, FiniteField) and len(out_size) == 0:
-        out = tmp
-    elif isinstance(tmp, FiniteField):
-        p = tmp.p
-
-        def unff(x):
-            if isinstance(x, FiniteField):
-                return x.n.numpy()
-            return x
-
-        vunff = np.vectorize(unff)
-
-        new_out = vunff(out)
-        out = FiniteField(new_out, p)
-
-    return out
+    return _ff_reduce(input_tensor, axis, keepdims, operation=operator.mul)

@@ -9,6 +9,7 @@ class Settings:
     use_gpu: bool = False
     D: int = 4
     dtype: type = np.int64
+    p: int = 2**31 - 19
 
     # Tensorflow settings
     def run_tf_eagerly(self):
@@ -16,6 +17,10 @@ class Settings:
 
     def executing_eagerly(self):
         return tf.executing_eagerly()
+
+    @property
+    def tf_p(self):
+        return tf.cast(self.p, dtype=settings.dtype)
 
 
 settings = Settings()
