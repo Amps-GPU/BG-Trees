@@ -2,21 +2,78 @@
     Tests the finite_gpufields module
 """
 
+import functools
+import operator
+
 import numpy as np
 from pyadic.finite_field import ModP
 import pytest
 import tensorflow as tf
 
 from bgtrees.finite_gpufields import FiniteField
-from bgtrees.finite_gpufields.finite_fields_tf import oinsum
 from bgtrees.finite_gpufields.operations import (
     ff_dot_product,
     ff_dot_product_single_batch,
     ff_dot_product_tris,
     ff_dot_product_tris_single_batch,
-    ff_index_permutation,
     ff_tensor_product,
 )
+
+
+def oinsum(eq, *arrays):
+    """A ``einsum`` implementation for ``numpy`` object arrays."""
+    lhs, output = eq.split("->")
+    inputs = lhs.split(",")
+
+    sizes = {}
+    for term, array in zip(inputs, arrays):
+        for k, d in zip(term, array.shape):
+            sizes[k] = d
+
+    out_size = tuple(sizes[k] for k in output)
+    out = np.empty(out_size, dtype=object)
+
+    inner = [k for k in sizes if k not in output]
+    inner_size = [sizes[k] for k in inner]
+
+    for coo_o in np.ndindex(*out_size):
+        coord = dict(zip(output, coo_o))
+
+        def gen_inner_sum():
+            for coo_i in np.ndindex(*inner_size):
+                coord.update(dict(zip(inner, coo_i)))
+
+                locs = []
+                for term in inputs:
+                    locs.append(tuple(coord[k] for k in term))
+
+                elements = []
+                for array, loc in zip(arrays, locs):
+                    elements.append(array[loc])
+
+                yield functools.reduce(operator.mul, elements)
+
+        tmp = functools.reduce(operator.add, gen_inner_sum())
+        out[coo_o] = tmp
+
+    # if the output is made of finite fields, take them out
+    if isinstance(tmp, FiniteField) and len(out_size) == 0:
+        out = tmp
+    elif isinstance(tmp, FiniteField):
+        p = tmp.p
+
+        def unff(x):
+            if isinstance(x, FiniteField):
+                return x.n.numpy()
+            return x
+
+        vunff = np.vectorize(unff)
+
+        new_out = vunff(out)
+        out = FiniteField(new_out, p)
+
+    return out
+
 
 # p-value for tests
 p = 2**31 - 19
@@ -238,7 +295,7 @@ def test_einsum_permutation():
     np1, ff1 = _create_example(shape=(2, 3, 4, 5))
     ein_str = "ijkl->kilj"
     np_res = _array_to_pyadic(np.einsum(ein_str, np1))
-    ff_res = ff_index_permutation(ein_str, ff1)
+    ff_res = ff1.transpose_ff((2, 0, 3, 1))
     compare(ff_res, np_res)
 
 

@@ -182,12 +182,6 @@ def ff_dot_product_tris_single_batch(x, y, rank_x=None, rank_y=None):
 
 @tf.function(reduce_retracing=True)
 def ff_tensor_product(einstr, x, y):
-    ret = tf.einsum(einstr, x, y.n)
-    return FiniteField(ret, y.p)
-
-
-@tf.function(reduce_retracing=True)
-def _ff_tensor_product(einstr, x, y):
     """
     Wrapper to apply the tensor product for Finite Fields
         A_ijk...B_lmn... = C_ijk...lmn...

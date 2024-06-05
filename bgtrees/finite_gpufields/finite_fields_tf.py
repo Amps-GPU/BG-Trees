@@ -258,11 +258,22 @@ def _ff_reduce(input_tensor, axis, keepdims, operation):
             for _ in range(raw_input.ndim):
                 ret = tf.expand_dims(ret)
 
-    else:
+    elif isinstance(axis, int):
         ret = _ff_reduce_single_axis(raw_input, axis, operation=operation)
 
         if keepdims:
             ret = tf.expand_dims(ret, axis)
+
+    else:
+        # A tuple has been received
+        ret = input_tensor
+        for ax in axis:
+            ret = _ff_reduce(ret, ax, True, operation)
+        ret = ret.n
+
+        # Now, if keepdims was False, remove the dimensions
+        if not keepdims:
+            ret = tf.squeeze(ret, axis)
 
     return FiniteField(ret, input_tensor.p)
 
