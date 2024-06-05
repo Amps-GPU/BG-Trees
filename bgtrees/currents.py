@@ -6,7 +6,7 @@ import tensorflow as tf
 from bgtrees.finite_gpufields import operations as op
 from bgtrees.finite_gpufields.finite_fields_tf import FiniteField
 
-from .metric_and_verticies import V3g, V4g, η
+from .metric_and_verticies import V3g, V4g, new_V3g, η
 from .settings import settings
 
 
@@ -77,7 +77,7 @@ def _vert_3_gluon(slice_left, slice_right):
     """Computes the 3g vertex for the two slices coming in."""
     moms_sl = tf.reduce_sum(slice_left, axis=1)
     moms_sr = tf.reduce_sum(slice_right, axis=1)
-    return V3g(moms_sl, moms_sr, einsum=op.ff_tensor_product)
+    return new_V3g(moms_sl, moms_sr)
 
 
 @tf.function(reduce_retracing=True)
@@ -107,7 +107,8 @@ def _contract_v4_current(vertex, jnu, jo, jrho):
 
     tmp_1 = op.ff_dot_product_single_batch(jrho, v4, rank_x=2, rank_y=2)  # rp, pN -> rN
     tmp_1 = tmp_1.reshape_ff((-1, D, D, D))  # rN -> ronm
-    tmp_1 = op.ff_index_permutation("ronm->rmno", tmp_1)
+    tmp_1 = tmp_1.transpose_ff((0, 3, 2, 1))
+    #     tmp_1 = op.ff_index_permutation("ronm->rmno", tmp_1)
 
     tmp_2 = op.ff_dot_product_tris(tmp_1, jo, rank_x=4, rank_y=2)  # rmno, ro -> rmn
     return op.ff_dot_product(tmp_2, jnu, rank_x=3, rank_y=2)  # rmn, rn -> rm

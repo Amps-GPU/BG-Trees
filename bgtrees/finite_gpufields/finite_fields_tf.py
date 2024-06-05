@@ -139,6 +139,10 @@ class FiniteField(experimental.ExtensionType):
         new_values = tf.reshape(self.n, new_shape)
         return self.__class__(new_values, self.p)
 
+    def transpose_ff(self, permutation):
+        new_values = tf.transpose(self.n, perm=permutation)
+        return self.__class__(new_values, self.p)
+
     # Mirror version
     def __radd__(self, b):
         return self + b

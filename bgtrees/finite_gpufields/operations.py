@@ -22,20 +22,9 @@ def ff_einsum_generic(einstr, *args):
         ff_tensor_product
         ff_index_permutation
     """
-    if len(args) == 1:
-        return ff_index_permutation(einstr, *args)
-    elif len(args) == 2:
+    if len(args) == 2:
         return ff_tensor_product(einstr, *args)
     raise NotImplementedError(f"Automatic understanding of contractions not implemented for {einstr}")
-
-
-@tf.function(reduce_retracing=True)
-def ff_index_permutation(einstr, x):
-    """Uses tf.einsum to permute the index of the tensor x
-    Since this is simply an index permutation, it goes transparently to tf.einsum
-    """
-    ret = tf.einsum(einstr, x.values)
-    return FiniteField(ret, x.p)
 
 
 @tf.function(reduce_retracing=True)
@@ -193,6 +182,12 @@ def ff_dot_product_tris_single_batch(x, y, rank_x=None, rank_y=None):
 
 @tf.function(reduce_retracing=True)
 def ff_tensor_product(einstr, x, y):
+    ret = tf.einsum(einstr, x, y.n)
+    return FiniteField(ret, y.p)
+
+
+@tf.function(reduce_retracing=True)
+def _ff_tensor_product(einstr, x, y):
     """
     Wrapper to apply the tensor product for Finite Fields
         A_ijk...B_lmn... = C_ijk...lmn...

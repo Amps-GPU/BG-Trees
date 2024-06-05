@@ -1,7 +1,7 @@
 import numpy
 import tensorflow
 
-from bgtrees.metric_and_verticies import MinkowskiMetric, V3g
+from bgtrees.metric_and_verticies import MinkowskiMetric, V3g, new_V3g
 from bgtrees.settings import settings
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -24,7 +24,7 @@ def test_MinkowskiMetric_cpu_vs_gpu():
 def test_V3g_cpu_vs_gpu():
     lp1, lp2 = numpy.array([[1, 1, 0, 0, 0]]), numpy.array([[1, -1, 0, 0, 0]])
     settings.use_gpu = True
-    V3g_gpu = V3g(lp1, lp2)
+    V3g_gpu = new_V3g(lp1, lp2)
     settings.use_gpu = False
     V3g_cpu = V3g(lp1, lp2)
     # dtype

@@ -20,7 +20,8 @@ settings.use_gpu = True
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument(
-        "data_file", help="A npz data file with the right information (use `create_array` to run this benchmark)"
+        "data_file",
+        help="A npz data file with the right information (use `create_array` to run this benchmark)",
     )
     parser.add_argument(
         "-n",
@@ -30,8 +31,11 @@ if __name__ == "__main__":
         type=int,
         default=[10, 100, 1000],
     )
-    parser.add_argument("-a", "--average", help="Run <average> times and take the average", type=int, default=1)
+    parser.add_argument(
+        "-a", "--average", help="Run <average> times and take the average", type=int, default=1
+    )
     parser.add_argument("-o", "--output", help="Output file for results as <n> <events>", type=str)
+    parser.add_argument("--profile", action="store_true")
     args = parser.parse_args()
 
     load_info = np.load(args.data_file)
@@ -57,11 +61,20 @@ if __name__ == "__main__":
 
     res_per_n = {}
 
-    for nev in list_of_n:
+    # Run a bit just to activate the JIT compilation
+    if not settings.executing_eagerly():
+        _ = another_j(ff_moms[:10, 1:], ff_pols[:10, 1:], put_propagator=False, verbose=False)
 
-        # Run a bit just to activate the JIT compilation
-        if not settings.executing_eagerly():
-            _ = another_j(ff_moms[:10, 1:], ff_pols[:10, 1:], put_propagator=False, verbose=False)
+    if args.profile:
+        import tensorflow as tf
+
+        logdir_path = "profiling_here"
+        options = tf.profiler.experimental.ProfilerOptions(
+            host_tracer_level=3, python_tracer_level=1, device_tracer_level=1
+        )
+        tf.profiler.experimental.start(logdir_path, options=options)
+
+    for nev in list_of_n:
 
         timing_raw = 0
 
@@ -86,8 +99,11 @@ if __name__ == "__main__":
 
         print(f"n = {nev} took {timing:.5}s")
 
-    #         finres = np.concatenate([i.values.numpy() for i in total_final_results])
-    #         np.testing.assert_allclose(finres, load_info["target"][:nev])
+#         finres = np.concatenate([i.values.numpy() for i in total_final_results])
+#         np.testing.assert_allclose(finres, load_info["target"][:nev])
+
+    if args.profile:
+        tf.profiler.experimental.stop()
 
     if args.output is not None:
         res_as_str = "\n".join([f"{i} {j}" for i, j in res_per_n.items()])
