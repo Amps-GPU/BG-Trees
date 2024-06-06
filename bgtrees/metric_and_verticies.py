@@ -11,6 +11,11 @@ Gamma5 = γ5 = numpy.block([[numpy.identity(2), numpy.zeros((2, 2))], [numpy.zer
 
 
 @gpu_constant
+def diag_mink(D):
+    return numpy.array([1] + [-1] * (D - 1)).astype(settings.dtype)
+
+
+@gpu_constant
 def MinkowskiMetric(D):
     """D-dimensional Minkowski metric in the mostly negative convention."""
     return numpy.diag([1] + [-1] * (D - 1)).astype(settings.dtype)
@@ -49,9 +54,14 @@ def new_V3g(lp1, lp2):
     if D is None:
         D = settings.D
 
-    mm = η(D)
+    mm = diag_mink(D)
+    r1 = tf.tensordot(lp1.n, mm, 0)
+    r2 = tf.tensordot(lp2.n, mm, 0)
 
-    a1 = FiniteField(tf.tensordot(lp1.n, mm, 0), lp1.p)
-    a2 = FiniteField(tf.tensordot(lp2.n, mm, 0), lp1.p)
+    r1 = tf.linalg.diag(r1)
+    r2 = tf.linalg.diag(r2)
+
+    a1 = FiniteField(r1, lp1.p)
+    a2 = FiniteField(r2, lp1.p)
 
     return (a1 - a2) + 2.0 * a2.transpose_ff((0, 3, 1, 2)) - 2.0 * a1.transpose_ff((0, 2, 3, 1))
