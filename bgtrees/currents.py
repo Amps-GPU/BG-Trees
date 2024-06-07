@@ -126,7 +126,7 @@ def another_j(lmoms, lpols, put_propagator=True, verbose=False):
     vg4_c = FiniteField(tf.transpose(V4g(D)), pprime)
     f_eta = FiniteField(η(D), lpols.p)
 
-    @functools.lru_cache
+    @functools.cache
     def _internal_j(a, b, put_propagator=True):
         """a and b are the extreme indexes of the particles
         being considered for this instance of the current
@@ -167,4 +167,7 @@ def another_j(lmoms, lpols, put_propagator=True, verbose=False):
         jr_submu = op.ff_dot_product_single_batch(jrmu, mmatrix, rank_x=2, rank_y=2)
         return jr_submu * propagators
 
-    return _internal_j(0, multiplicity, put_propagator=put_propagator)
+    ret = _internal_j(0, multiplicity, put_propagator=put_propagator)
+    # Clean the cache on the way out
+    _internal_j.cache_clear()
+    return ret

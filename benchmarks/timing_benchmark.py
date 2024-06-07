@@ -30,6 +30,8 @@ if __name__ == "__main__":
         type=int,
         default=[10, 100, 1000],
     )
+    parser.add_argument("-a", "--average", help="Run <average> times and take the average", type=int, default=1)
+    parser.add_argument("-o", "--output", help="Output file for results as <n> <events>", type=str)
     args = parser.parse_args()
 
     load_info = np.load(args.data_file)
@@ -50,24 +52,46 @@ if __name__ == "__main__":
     D = ff_moms.shape[2]
     mul = ff_moms.shape[1]
 
-    # Run a bit just to activate the JIT compilation
-    _ = another_j(ff_moms[:2, 1:], ff_pols[:2, 1:], put_propagator=False, verbose=False)
-
     print("Starting the run...")
-    batch_size = 500000
+    batch_size = 5 * int(10**5)
+
+    res_per_n = {}
 
     for nev in list_of_n:
-        start = time()
 
-        for from_ev in range(0, nev, batch_size):
-            to_ev = np.minimum(from_ev + batch_size, nev)
-            momenta = ff_moms[from_ev:to_ev]
-            polariz = ff_pols[from_ev:to_ev]
+        # Run a bit just to activate the JIT compilation
+        if not settings.executing_eagerly():
+            _ = another_j(ff_moms[:10, 1:], ff_pols[:10, 1:], put_propagator=False, verbose=False)
 
-            ret = another_j(momenta, polariz, put_propagator=False, verbose=False)
-            final_result = ff_dot_product(momenta[:, :0], ret)
+        timing_raw = 0
 
-        end = time()
-        print(f"n = {nev} took {end-start:.5}s")
-#
-#     # np.testing.assert_allclose(final_result.values.numpy(), load_info["target_result"])
+        for _ in range(args.average):
+            start = time()
+            total_final_results = []
+
+            for from_ev in range(0, nev, batch_size):
+                to_ev = np.minimum(from_ev + batch_size, nev)
+                momenta = ff_moms[from_ev:to_ev]
+                polariz = ff_pols[from_ev:to_ev]
+
+                ret = another_j(momenta[:, 1:], polariz[:, 1:], put_propagator=False, verbose=False)
+                final_result = ff_dot_product(polariz[:, 0], ret)
+                total_final_results.append(final_result)
+
+            end = time()
+            timing_raw += end - start
+
+        timing = timing_raw / args.average
+        res_per_n[nev] = timing
+
+        print(f"n = {nev} took {timing:.5}s")
+
+    #         finres = np.concatenate([i.values.numpy() for i in total_final_results])
+    #         np.testing.assert_allclose(finres, load_info["target"][:nev])
+
+    if args.output is not None:
+        res_as_str = "\n".join([f"{i} {j}" for i, j in res_per_n.items()])
+        res_as_str += "\n"
+        with open(args.output, "w", encoding="utf-8") as f:
+            f.write(res_as_str)
+        print(f"Results written to {args.output}")
