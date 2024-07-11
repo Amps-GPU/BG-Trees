@@ -11,7 +11,8 @@ env:
   CUDA_VISIBLE_DEVICES: ""
 
 jobs:
-  test: 
+
+  CI-Test-CPU: 
     runs-on: [ubuntu-latest]
 
     steps:

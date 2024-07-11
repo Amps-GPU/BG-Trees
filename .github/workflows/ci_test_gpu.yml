@@ -9,7 +9,7 @@ on:
 
 jobs:
 
-  CI:
+  CI-Test-GPU:
     runs-on: [self-hosted]
 
     steps:
