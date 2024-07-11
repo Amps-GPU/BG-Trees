@@ -1,4 +1,4 @@
-name: checks on cpu
+name: CI Test CPU
 
 on:
   push:
@@ -6,7 +6,6 @@ on:
   pull_request:
     branches: [ '*', ]
   workflow_dispatch:
-    branches: [ main, ]
 
 env:
   CUDA_VISIBLE_DEVICES: ""
@@ -33,4 +32,11 @@ jobs:
 
     - name: Test with pytest
       run: |
-        pytest 
+        pytest |& tee coverage.txt
+        PYTEST_EXIT_CODE=${PIPESTATUS[0]}
+        if [ "$PYTEST_EXIT_CODE" -ne 0 ]; then
+          echo "pytest failed with exit code $PYTEST_EXIT_CODE"
+          exit 1
+        else
+          echo "pytest passed with exit code 0"
+        fi
