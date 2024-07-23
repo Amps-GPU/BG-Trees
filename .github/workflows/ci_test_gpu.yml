@@ -1,4 +1,4 @@
-name: Continuous Integration
+name: CI Test GPU
 
 on:
   push:
@@ -6,11 +6,10 @@ on:
   pull_request:
     branches: [ '*', ]
   workflow_dispatch:
-    branches: [ main, ]
 
 jobs:
 
-  CI:
+  CI-Test-GPU:
     runs-on: [self-hosted]
 
     steps:

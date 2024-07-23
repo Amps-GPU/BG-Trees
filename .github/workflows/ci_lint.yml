@@ -1,4 +1,4 @@
-name: Run pylint
+name: CI Lint
 
 on:
   push:
@@ -6,10 +6,10 @@ on:
   pull_request:
     branches: [ '*', ]
   workflow_dispatch:
-    branches: [ main, ]
 
 jobs:
-  test: 
+
+  CI-Lint: 
     runs-on: [ubuntu-latest]
 
     steps:
