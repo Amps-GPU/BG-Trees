@@ -2,7 +2,7 @@
 
 [![CI Lint](https://github.com/Amps-GPU/BG-Trees/actions/workflows/ci_lint.yml/badge.svg)](https://github.com/Amps-GPU/BG-Trees/actions/workflows/ci_lint.yml)
 [![CI Test](https://github.com/Amps-GPU/BG-Trees/actions/workflows/ci_test_gpu.yml/badge.svg)](https://github.com/Amps-GPU/BG-Trees/actions/workflows/ci_test_gpu.yml)
-[![Coverage](https://img.shields.io/badge/Coverage-76%25-yellow?labelColor=2a2f35)](https://github.com/Amps-GPU/BG-Trees/actions)
+[![Coverage](https://img.shields.io/badge/Coverage-74%25-yellow?labelColor=2a2f35)](https://github.com/Amps-GPU/BG-Trees/actions)
 
 ## Installation
 
