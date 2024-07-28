@@ -22,20 +22,9 @@ def ff_einsum_generic(einstr, *args):
         ff_tensor_product
         ff_index_permutation
     """
-    if len(args) == 1:
-        return ff_index_permutation(einstr, *args)
-    elif len(args) == 2:
+    if len(args) == 2:
         return ff_tensor_product(einstr, *args)
     raise NotImplementedError(f"Automatic understanding of contractions not implemented for {einstr}")
-
-
-@tf.function(reduce_retracing=True)
-def ff_index_permutation(einstr, x):
-    """Uses tf.einsum to permute the index of the tensor x
-    Since this is simply an index permutation, it goes transparently to tf.einsum
-    """
-    ret = tf.einsum(einstr, x.values)
-    return FiniteField(ret, x.p)
 
 
 @tf.function(reduce_retracing=True)
