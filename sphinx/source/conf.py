@@ -23,7 +23,6 @@ with open(r'../../pyproject.toml', 'r') as f:
 
 version = re.findall(r"version = \"([\d\.]+)\"", content)[0]
 
-from version import __version__ as version  # noqa: E402
 
 # -- Project information -----------------------------------------------------
 
