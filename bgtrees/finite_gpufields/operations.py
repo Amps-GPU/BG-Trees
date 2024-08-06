@@ -116,8 +116,8 @@ def ff_dot_product_tris(x, y, rank_x=None, rank_y=None):
     """
     Wrapper for a product rijk->rklmn with k contracted.
 
-    This function reshapes the input and then applies wrapper_dot_product. It is a 
-    transitional function during development. 
+    This function reshapes the input and then applies wrapper_dot_product. It is a
+    transitional function during development.
 
     TODO: Make all functions into one that is able to dispatch the right operation
     upon receiving an einsum string.
