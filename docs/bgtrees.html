@@ -56,14 +56,40 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#bgtrees-currents-module">bgtrees.currents module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#bgtrees-metric-and-verticies-module">bgtrees.metric_and_verticies module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-bgtrees.currents">bgtrees.currents module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#bgtrees.currents.J_"><code class="docutils literal notranslate"><span class="pre">J_μ()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bgtrees.currents.another_j"><code class="docutils literal notranslate"><span class="pre">another_j()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bgtrees.currents.forest"><code class="docutils literal notranslate"><span class="pre">forest()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-bgtrees.metric_and_verticies">bgtrees.metric_and_verticies module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#bgtrees.metric_and_verticies.MinkowskiMetric"><code class="docutils literal notranslate"><span class="pre">MinkowskiMetric()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bgtrees.metric_and_verticies.V3g"><code class="docutils literal notranslate"><span class="pre">V3g()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bgtrees.metric_and_verticies.V4g"><code class="docutils literal notranslate"><span class="pre">V4g()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bgtrees.metric_and_verticies.diag_mink"><code class="docutils literal notranslate"><span class="pre">diag_mink()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bgtrees.metric_and_verticies.new_V3g"><code class="docutils literal notranslate"><span class="pre">new_V3g()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bgtrees.metric_and_verticies."><code class="docutils literal notranslate"><span class="pre">η()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#module-bgtrees.settings">bgtrees.settings module</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#bgtrees.settings.Settings"><code class="docutils literal notranslate"><span class="pre">Settings</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#bgtrees-states-module">bgtrees.states module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#bgtrees-tools-module">bgtrees.tools module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-bgtrees.states">bgtrees.states module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#bgtrees.states.momflat"><code class="docutils literal notranslate"><span class="pre">momflat()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bgtrees.states.1"><code class="docutils literal notranslate"><span class="pre">ε1()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bgtrees.states.2"><code class="docutils literal notranslate"><span class="pre">ε2()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bgtrees.states.m"><code class="docutils literal notranslate"><span class="pre">εm()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bgtrees.states.p"><code class="docutils literal notranslate"><span class="pre">εp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">μ2()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-bgtrees.tools">bgtrees.tools module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#bgtrees.tools.gpu_constant"><code class="docutils literal notranslate"><span class="pre">gpu_constant()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bgtrees.tools.gpu_function"><code class="docutils literal notranslate"><span class="pre">gpu_function()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bgtrees.tools.tsr"><code class="docutils literal notranslate"><span class="pre">tsr()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#module-bgtrees">Module contents</a></li>
 </ul>
 </li>
@@ -106,19 +132,52 @@
 <li class="toctree-l2"><a class="reference internal" href="bgtrees.finite_gpufields.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="bgtrees.finite_gpufields.cuda_operators.html">bgtrees.finite_gpufields.cuda_operators package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="bgtrees.finite_gpufields.cuda_operators.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bgtrees.finite_gpufields.cuda_operators.html#bgtrees-finite-gpufields-cuda-operators-check-inverse-module">bgtrees.finite_gpufields.cuda_operators.check_inverse module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bgtrees.finite_gpufields.cuda_operators.html#module-bgtrees.finite_gpufields.cuda_operators.check_inverse">bgtrees.finite_gpufields.cuda_operators.check_inverse module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="bgtrees.finite_gpufields.cuda_operators.html#bgtrees-finite-gpufields-cuda-operators-dot-product-module">bgtrees.finite_gpufields.cuda_operators.dot_product module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="bgtrees.finite_gpufields.cuda_operators.html#bgtrees-finite-gpufields-cuda-operators-inverse-module">bgtrees.finite_gpufields.cuda_operators.inverse module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bgtrees.finite_gpufields.cuda_operators.html#bgtrees-finite-gpufields-cuda-operators-py-dotproduct-module">bgtrees.finite_gpufields.cuda_operators.py_dotproduct module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="bgtrees.finite_gpufields.cuda_operators.html#module-contents">Module contents</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bgtrees.finite_gpufields.cuda_operators.html#module-bgtrees.finite_gpufields.cuda_operators.py_dotproduct">bgtrees.finite_gpufields.cuda_operators.py_dotproduct module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="bgtrees.finite_gpufields.cuda_operators.html#module-bgtrees.finite_gpufields.cuda_operators">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="bgtrees.finite_gpufields.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees-finite-gpufields-finite-fields-tf-module">bgtrees.finite_gpufields.finite_fields_tf module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees-finite-gpufields-operations-module">bgtrees.finite_gpufields.operations module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bgtrees.finite_gpufields.html#module-contents">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bgtrees.finite_gpufields.html#module-bgtrees.finite_gpufields.finite_fields_tf">bgtrees.finite_gpufields.finite_fields_tf module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.finite_fields_tf.FiniteField"><code class="docutils literal notranslate"><span class="pre">FiniteField</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.finite_fields_tf.FiniteField.Spec"><code class="docutils literal notranslate"><span class="pre">FiniteField.Spec</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.finite_fields_tf.FiniteField.n"><code class="docutils literal notranslate"><span class="pre">FiniteField.n</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.finite_fields_tf.FiniteField.p"><code class="docutils literal notranslate"><span class="pre">FiniteField.p</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.finite_fields_tf.FiniteField.reshape_ff"><code class="docutils literal notranslate"><span class="pre">FiniteField.reshape_ff()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.finite_fields_tf.FiniteField.shape"><code class="docutils literal notranslate"><span class="pre">FiniteField.shape</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.finite_fields_tf.FiniteField.transpose_ff"><code class="docutils literal notranslate"><span class="pre">FiniteField.transpose_ff()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.finite_fields_tf.FiniteField.values"><code class="docutils literal notranslate"><span class="pre">FiniteField.values</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.finite_fields_tf.FiniteField.zero_panning"><code class="docutils literal notranslate"><span class="pre">FiniteField.zero_panning()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.finite_fields_tf.finite_field_expand_dims"><code class="docutils literal notranslate"><span class="pre">finite_field_expand_dims()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.finite_fields_tf.finite_field_reduce_prod"><code class="docutils literal notranslate"><span class="pre">finite_field_reduce_prod()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.finite_fields_tf.finite_field_reduce_sum"><code class="docutils literal notranslate"><span class="pre">finite_field_reduce_sum()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.finite_fields_tf.finite_field_squeeze"><code class="docutils literal notranslate"><span class="pre">finite_field_squeeze()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.finite_fields_tf.finite_field_unary_operations"><code class="docutils literal notranslate"><span class="pre">finite_field_unary_operations()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.finite_fields_tf.finite_field_unstack"><code class="docutils literal notranslate"><span class="pre">finite_field_unstack()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.finite_fields_tf.generate_finite_field"><code class="docutils literal notranslate"><span class="pre">generate_finite_field()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.finite_fields_tf.get_imaginary_for"><code class="docutils literal notranslate"><span class="pre">get_imaginary_for()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.finite_fields_tf.test_me"><code class="docutils literal notranslate"><span class="pre">test_me()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="bgtrees.finite_gpufields.html#module-bgtrees.finite_gpufields.operations">bgtrees.finite_gpufields.operations module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.operations.ff_dot_product"><code class="docutils literal notranslate"><span class="pre">ff_dot_product()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.operations.ff_dot_product_single_batch"><code class="docutils literal notranslate"><span class="pre">ff_dot_product_single_batch()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.operations.ff_dot_product_tris"><code class="docutils literal notranslate"><span class="pre">ff_dot_product_tris()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.operations.ff_dot_product_tris_single_batch"><code class="docutils literal notranslate"><span class="pre">ff_dot_product_tris_single_batch()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.operations.ff_einsum_generic"><code class="docutils literal notranslate"><span class="pre">ff_einsum_generic()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.operations.ff_tensor_product"><code class="docutils literal notranslate"><span class="pre">ff_tensor_product()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="bgtrees.finite_gpufields.html#module-bgtrees.finite_gpufields">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="bgtrees.finite_gpufields.html#bgtrees.finite_gpufields.tensordot"><code class="docutils literal notranslate"><span class="pre">tensordot()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -127,11 +186,66 @@
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
 </section>
-<section id="bgtrees-currents-module">
-<h2>bgtrees.currents module<a class="headerlink" href="#bgtrees-currents-module" title="Link to this heading"></a></h2>
+<section id="module-bgtrees.currents">
+<span id="bgtrees-currents-module"></span><h2>bgtrees.currents module<a class="headerlink" href="#module-bgtrees.currents" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="bgtrees.currents.J_">
+<span class="sig-prename descclassname"><span class="pre">bgtrees.currents.</span></span><span class="sig-name descname"><span class="pre">J_μ</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lmoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lpols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">put_propagator=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">einsum=&lt;function</span> <span class="pre">einsum&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bgtrees.currents.J_" title="Link to this definition"></a></dt>
+<dd><p>Recursive vectorized current builder. End of recursion is polarization tensors.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bgtrees.currents.another_j">
+<span class="sig-prename descclassname"><span class="pre">bgtrees.currents.</span></span><span class="sig-name descname"><span class="pre">another_j</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lmoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lpols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">put_propagator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bgtrees.currents.another_j" title="Link to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Compute the current for an input array of shape</dt><dd><p>(replicas, multiplicity, dimension)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bgtrees.currents.forest">
+<span class="sig-prename descclassname"><span class="pre">bgtrees.currents.</span></span><span class="sig-name descname"><span class="pre">forest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lmoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lpols</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">einsum=&lt;function</span> <span class="pre">einsum&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bgtrees.currents.forest" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 </section>
-<section id="bgtrees-metric-and-verticies-module">
-<h2>bgtrees.metric_and_verticies module<a class="headerlink" href="#bgtrees-metric-and-verticies-module" title="Link to this heading"></a></h2>
+<section id="module-bgtrees.metric_and_verticies">
+<span id="bgtrees-metric-and-verticies-module"></span><h2>bgtrees.metric_and_verticies module<a class="headerlink" href="#module-bgtrees.metric_and_verticies" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="bgtrees.metric_and_verticies.MinkowskiMetric">
+<span class="sig-prename descclassname"><span class="pre">bgtrees.metric_and_verticies.</span></span><span class="sig-name descname"><span class="pre">MinkowskiMetric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">D</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bgtrees.metric_and_verticies.MinkowskiMetric" title="Link to this definition"></a></dt>
+<dd><p>D-dimensional Minkowski metric in the mostly negative convention.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bgtrees.metric_and_verticies.V3g">
+<span class="sig-prename descclassname"><span class="pre">bgtrees.metric_and_verticies.</span></span><span class="sig-name descname"><span class="pre">V3g</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lp2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">einsum=&lt;function</span> <span class="pre">einsum&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bgtrees.metric_and_verticies.V3g" title="Link to this definition"></a></dt>
+<dd><p>3-gluon vertex, upper indices μνρ, D-dimensional</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bgtrees.metric_and_verticies.V4g">
+<span class="sig-prename descclassname"><span class="pre">bgtrees.metric_and_verticies.</span></span><span class="sig-name descname"><span class="pre">V4g</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">D</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bgtrees.metric_and_verticies.V4g" title="Link to this definition"></a></dt>
+<dd><p>4-gluon vertex, upper indices μνρσ</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bgtrees.metric_and_verticies.diag_mink">
+<span class="sig-prename descclassname"><span class="pre">bgtrees.metric_and_verticies.</span></span><span class="sig-name descname"><span class="pre">diag_mink</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">D</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bgtrees.metric_and_verticies.diag_mink" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bgtrees.metric_and_verticies.new_V3g">
+<span class="sig-prename descclassname"><span class="pre">bgtrees.metric_and_verticies.</span></span><span class="sig-name descname"><span class="pre">new_V3g</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lp1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lp2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bgtrees.metric_and_verticies.new_V3g" title="Link to this definition"></a></dt>
+<dd><p>3-gluon vertex, upper indices μνρ, D-dimensional. Reduce tensor products.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bgtrees.metric_and_verticies.">
+<span class="sig-prename descclassname"><span class="pre">bgtrees.metric_and_verticies.</span></span><span class="sig-name descname"><span class="pre">η</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">D</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bgtrees.metric_and_verticies." title="Link to this definition"></a></dt>
+<dd><p>D-dimensional Minkowski metric in the mostly negative convention.</p>
+</dd></dl>
+
 </section>
 <section id="module-bgtrees.settings">
 <span id="bgtrees-settings-module"></span><h2>bgtrees.settings module<a class="headerlink" href="#module-bgtrees.settings" title="Link to this heading"></a></h2>
@@ -178,11 +292,66 @@
 </dd></dl>
 
 </section>
-<section id="bgtrees-states-module">
-<h2>bgtrees.states module<a class="headerlink" href="#bgtrees-states-module" title="Link to this heading"></a></h2>
+<section id="module-bgtrees.states">
+<span id="bgtrees-states-module"></span><h2>bgtrees.states module<a class="headerlink" href="#module-bgtrees.states" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="bgtrees.states.momflat">
+<span class="sig-prename descclassname"><span class="pre">bgtrees.states.</span></span><span class="sig-name descname"><span class="pre">momflat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">momD</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">momχ</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bgtrees.states.momflat" title="Link to this definition"></a></dt>
+<dd><p>Massless (<cite>flat</cite>) projection of 4D massive momentum onto a reference direction momχ.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bgtrees.states.1">
+<span class="sig-prename descclassname"><span class="pre">bgtrees.states.</span></span><span class="sig-name descname"><span class="pre">ε1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">oParticles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">einsum=&lt;function</span> <span class="pre">einsum&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bgtrees.states.1" title="Link to this definition"></a></dt>
+<dd><p>Negative polarization vector: ε⁻^μ = &lt;i|γ^μ|q]/(√2[iq])</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bgtrees.states.2">
+<span class="sig-prename descclassname"><span class="pre">bgtrees.states.</span></span><span class="sig-name descname"><span class="pre">ε2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">oParticles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">einsum=&lt;function</span> <span class="pre">einsum&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bgtrees.states.2" title="Link to this definition"></a></dt>
+<dd><p>Positive polarization vector: ε⁺^μ = &lt;q|γ^μ|i]/(√2&lt;qi&gt;)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bgtrees.states.m">
+<span class="sig-prename descclassname"><span class="pre">bgtrees.states.</span></span><span class="sig-name descname"><span class="pre">εm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">oParticles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">einsum=&lt;function</span> <span class="pre">einsum&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bgtrees.states.m" title="Link to this definition"></a></dt>
+<dd><p>Negative polarization vector: ε⁻^μ = &lt;i|γ^μ|q]/(√2[iq])</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bgtrees.states.p">
+<span class="sig-prename descclassname"><span class="pre">bgtrees.states.</span></span><span class="sig-name descname"><span class="pre">εp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">oParticles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">einsum=&lt;function</span> <span class="pre">einsum&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bgtrees.states.p" title="Link to this definition"></a></dt>
+<dd><p>Positive polarization vector: ε⁺^μ = &lt;q|γ^μ|i]/(√2&lt;qi&gt;)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-prename descclassname"><span class="pre">bgtrees.states.</span></span><span class="sig-name descname"><span class="pre">μ2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">momD</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd><p>The 4D mass of a massless D momentum (d=None).
+For μ^2_d = k^2_4 + … + k^2_d-1</p>
+</dd></dl>
+
 </section>
-<section id="bgtrees-tools-module">
-<h2>bgtrees.tools module<a class="headerlink" href="#bgtrees-tools-module" title="Link to this heading"></a></h2>
+<section id="module-bgtrees.tools">
+<span id="bgtrees-tools-module"></span><h2>bgtrees.tools module<a class="headerlink" href="#module-bgtrees.tools" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="bgtrees.tools.gpu_constant">
+<span class="sig-prename descclassname"><span class="pre">bgtrees.tools.</span></span><span class="sig-name descname"><span class="pre">gpu_constant</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bgtrees.tools.gpu_constant" title="Link to this definition"></a></dt>
+<dd><p>Turns constants into gpu constants if needed.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bgtrees.tools.gpu_function">
+<span class="sig-prename descclassname"><span class="pre">bgtrees.tools.</span></span><span class="sig-name descname"><span class="pre">gpu_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bgtrees.tools.gpu_function" title="Link to this definition"></a></dt>
+<dd><p>Passes additional arguments to run on gpu if needed.
+Dispatchs a different function depending on whether the arguments are finite fields or not</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="bgtrees.tools.tsr">
+<span class="sig-prename descclassname"><span class="pre">bgtrees.tools.</span></span><span class="sig-name descname"><span class="pre">tsr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bgtrees.tools.tsr" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 </section>
 <section id="module-bgtrees">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-bgtrees" title="Link to this heading"></a></h2>
