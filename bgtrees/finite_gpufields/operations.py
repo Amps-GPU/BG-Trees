@@ -16,11 +16,12 @@ from .finite_fields_tf import FiniteField
 
 @tf.function(reduce_retracing=True)
 def ff_einsum_generic(einstr, *args):
-    """Tries to automagically select the right operation
-    given the einstr
-    currently only works for
-        ff_tensor_product
-        ff_index_permutation
+    """
+    Tries to automagically select the right operation given the einstr.
+
+    Currently only works for:
+    - ff_tensor_product
+    - ff_index_permutation
     """
     if len(args) == 2:
         return ff_tensor_product(einstr, *args)
@@ -112,16 +113,22 @@ def ff_dot_product_single_batch(x, y, rank_x=None, rank_y=None):
 
 @tf.function(reduce_retracing=True)
 def ff_dot_product_tris(x, y, rank_x=None, rank_y=None):
-    """Wrapper for a product rijk->rklmn with k contracted
-    reshapes the input and then applies wrapper_dot_product
-    transitional function during development
-    TODO: make all functions into one that is able to dispatch the right operation
-    upon receiving a eisum string
+    """
+    Wrapper for a product rijk->rklmn with k contracted.
 
-    It assumes both x and y are batched, i.e., the equivalent operation is
+    This function reshapes the input and then applies wrapper_dot_product. It is a 
+    transitional function during development. 
+
+    TODO: Make all functions into one that is able to dispatch the right operation
+    upon receiving an einsum string.
+
+    It assumes both x and y are batched, i.e., the equivalent operation is:
         rijk, rklm -> rijlm
-    it works by collapsing the ij and lm axes, performing the operation rAk, rkB -> rAB
-    and then unrolling back A and B
+
+    It works by:
+    - collapsing the ij and lm axes,
+    - performing the operation rAk, rkB -> rAB,
+    - and then unrolling back A and B.
     """
     if rank_x is None:
         rank_x = len(x.shape)

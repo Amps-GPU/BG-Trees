@@ -16,3 +16,4 @@ _version.py
 *.o
 *.so
 coverage.txt
+docs/

@@ -1,21 +1,22 @@
 #!/usr/bin/env python3
 """
-    Script to test and benchmark the dot_product kernels
+Script to test and benchmark the dot_product kernels.
 
-    The C++ version is competitive with numpy (probably doing the same thing under the hood)
-    when using @, when using einsum, the C++ version is about 3 or 4 times faster.
+The C++ version is competitive with NumPy (probably doing the same thing under the hood)
+when using the @ operator. When using einsum, the C++ version is about 3 to 4 times faster.
 
-    The cuda version is faster than numpy (scales with number of elements)
-        1e5: 2 times
-        1e6: 10 times
-        1e7: 60 times
-    note that it is an unfair comparison (for us) since in numpy the % operation is done only at the end
-    The same factor of 3-4 can be multiplied to these numbers when using einsum with numpy
+The CUDA version is faster than NumPy (scales with the number of elements):
+- 1e5: 2 times faster
+- 1e6: 10 times faster
+- 1e7: 60 times faster
 
-    There exist some overhead in our operations that takes as long as computing ~1e4 events.
-    It is unclear how this would scale in a situation in which there are _many_ operations,
-    if the overhead is not per-operation (i.e., once the events are in-device they remain there)
-    this might not be a problem
+Note that it is an unfair comparison (for us) since in NumPy the % operation is done only at the end.
+The same factor of 3-4 can be multiplied to these numbers when using einsum with NumPy.
+
+There exists some overhead in our operations that takes as long as computing ~1e4 events.
+It is unclear how this would scale in a situation in which there are _many_ operations.
+If the overhead is not per-operation (i.e., once the events are in-device they remain there),
+this might not be a problem.
 """
 import time
 
