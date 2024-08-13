@@ -79,8 +79,19 @@
 <h1>BG Trees on the GPU<a class="headerlink" href="#bg-trees-on-the-gpu" title="Link to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 </div>
+<p>Welcome to the documentation of BG Trees!</p>
+<p>BG Trees is a flexible and modular library that makes it easier to compute scattering amplitudes using the Berends-Giele recursion algorithm.
+As higher-order calculations get more complex and resource-intensive, new strategies need to be developed.
+Being able to compute amplitudes with various types of arithmetic and in an arbitrary number of dimension can be proven crucial for loop calculations.</p>
+<p>By tapping into the power of GPUs, BG Trees helps cut down on the normally high costs of these calculations, making it much more feasible to tackle advanced problems.</p>
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<p>The code, library and CUDA kernels can be installed with.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">git</span><span class="o">+</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">Amps</span><span class="o">-</span><span class="n">GPU</span><span class="o">/</span><span class="n">BG</span><span class="o">-</span><span class="n">Trees</span>
+</pre></div>
+</div>
+<p>This command will automatically install the <code class="docutils literal notranslate"><span class="pre">tensorflow[and-cuda]</span></code> package
+and it will attempt to compile the CUDA kernels if the <code class="docutils literal notranslate"><span class="pre">nvcc</span></code> compiler is available.</p>
 </section>
 <section id="quick-start">
 <h2>Quick start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h2>

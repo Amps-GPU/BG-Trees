@@ -132,12 +132,14 @@
 </section>
 <section id="module-bgtrees.finite_gpufields.finite_fields_tf">
 <span id="bgtrees-finite-gpufields-finite-fields-tf-module"></span><h2>bgtrees.finite_gpufields.finite_fields_tf module<a class="headerlink" href="#module-bgtrees.finite_gpufields.finite_fields_tf" title="Link to this heading"></a></h2>
-<p>Tensorflow extention to have a Finite Fields type that works in GPU
-port of <a class="reference external" href="https://github.com/GDeLaurentis/pyadic/blob/main/pyadic/finite_field.py">https://github.com/GDeLaurentis/pyadic/blob/main/pyadic/finite_field.py</a></p>
+<p>TensorFlow extension to FiniteFields.
+This is a (partial) port of
+<a class="reference external" href="https://github.com/GDeLaurentis/pyadic/blob/main/pyadic/finite_field.py">https://github.com/GDeLaurentis/pyadic/blob/main/pyadic/finite_field.py</a>
+with some modifications geared towards the usage of GPUs.</p>
 <p>The TensorFlow ExtensionType FiniteField act as a container.
 Any operation between two FiniteField will result in another FiniteField</p>
 <p>Note: all operations between two FiniteField assume that p is going to always be prime
-and the same. Any checks should have occur before getting to this function.</p>
+and the same. Any checks should have occured before getting to this function.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="bgtrees.finite_gpufields.finite_fields_tf.FiniteField">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">bgtrees.finite_gpufields.finite_fields_tf.</span></span><span class="sig-name descname"><span class="pre">FiniteField</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bgtrees.finite_gpufields.finite_fields_tf.FiniteField" title="Link to this definition"></a></dt>
@@ -331,14 +333,6 @@ tensors are actually batched</p>
 <section id="module-bgtrees.finite_gpufields">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-bgtrees.finite_gpufields" title="Link to this heading"></a></h2>
 <p>The finite_gpufields module provides primitives to utilize the FiniteField type.</p>
-<dl class="py function">
-<dt class="sig sig-object py" id="bgtrees.finite_gpufields.tensordot">
-<span class="sig-prename descclassname"><span class="pre">bgtrees.finite_gpufields.</span></span><span class="sig-name descname"><span class="pre">tensordot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#bgtrees.finite_gpufields.tensordot" title="Link to this definition"></a></dt>
-<dd><p>Perform a tensordot operation with the internal arrays of the ff
-and return a Finite Field
-Note: this will only produce the correct result if all intermediate operations are such that x &lt; p</p>
-</dd></dl>
-
 </section>
 </section>
 
