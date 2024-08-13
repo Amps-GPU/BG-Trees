@@ -1,6 +1,6 @@
 """
     TensorFlow extension to FiniteFields.
-    This is a (partial) port of 
+    This is a (partial) port of
     https://github.com/GDeLaurentis/pyadic/blob/main/pyadic/finite_field.py
     with some modifications geared towards the usage of GPUs.
 
