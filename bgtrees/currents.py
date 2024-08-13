@@ -12,7 +12,10 @@ from .settings import settings
 
 # @gpu_function
 def J_μ(lmoms, lpols, put_propagator=True, depth=0, verbose=False, einsum=numpy.einsum):
-    """Recursive vectorized current builder. End of recursion is polarization tensors."""
+    """Recursive vectorized current builder. End of recursion is polarization tensors.
+
+    TODO: try to merge this and another_j
+    """
 
     assert lmoms.shape[:2] == lpols.shape[:2]
     replicas, multiplicity, D = lmoms.shape

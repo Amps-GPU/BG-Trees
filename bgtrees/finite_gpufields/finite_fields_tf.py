@@ -1,12 +1,14 @@
 """
-    Tensorflow extention to have a Finite Fields type that works in GPU
-    port of https://github.com/GDeLaurentis/pyadic/blob/main/pyadic/finite_field.py
+    TensorFlow extension to FiniteFields.
+    This is a (partial) port of 
+    https://github.com/GDeLaurentis/pyadic/blob/main/pyadic/finite_field.py
+    with some modifications geared towards the usage of GPUs.
 
     The TensorFlow ExtensionType FiniteField act as a container.
     Any operation between two FiniteField will result in another FiniteField
 
     Note: all operations between two FiniteField assume that p is going to always be prime
-    and the same. Any checks should have occur before getting to this function.
+    and the same. Any checks should have occured before getting to this function.
 """
 
 import functools
