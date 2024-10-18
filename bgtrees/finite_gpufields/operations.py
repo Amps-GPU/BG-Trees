@@ -14,7 +14,7 @@ from .cuda_operators import wrapper_dot_product, wrapper_dot_product_single_batc
 from .finite_fields_tf import FiniteField
 
 
-@tf.function(reduce_retracing=True)
+@tf.function(reduce_retracing=False, jit_compile=True)
 def ff_einsum_generic(einstr, *args):
     """
     Tries to automagically select the right operation given the einstr.
@@ -28,7 +28,7 @@ def ff_einsum_generic(einstr, *args):
     raise NotImplementedError(f"Automatic understanding of contractions not implemented for {einstr}")
 
 
-@tf.function(reduce_retracing=True)
+@tf.function(reduce_retracing=False)
 def ff_dot_product(x, y, rank_x=None, rank_y=None):
     """Perform a dot product between two batched Finite Fields
     Uses a CUDA kernel underneath
@@ -76,7 +76,7 @@ def ff_dot_product(x, y, rank_x=None, rank_y=None):
     return FiniteField(ret, p)
 
 
-@tf.function(reduce_retracing=True)
+@tf.function(reduce_retracing=False)
 def ff_dot_product_single_batch(x, y, rank_x=None, rank_y=None):
     """Perform a dot product between one batch (x) and unbatched (y) Finite Fields
     Uses a CUDA kernel underneath
@@ -111,7 +111,7 @@ def ff_dot_product_single_batch(x, y, rank_x=None, rank_y=None):
     return FiniteField(ret, x.p)
 
 
-@tf.function(reduce_retracing=True)
+@tf.function(reduce_retracing=False)
 def ff_dot_product_tris(x, y, rank_x=None, rank_y=None):
     """
     Wrapper for a product rijk->rklmn with k contracted.
@@ -157,7 +157,7 @@ def ff_dot_product_tris(x, y, rank_x=None, rank_y=None):
     return ret.reshape_ff(shape_back)
 
 
-@tf.function(reduce_retracing=True)
+@tf.function(reduce_retracing=False)
 def ff_dot_product_tris_single_batch(x, y, rank_x=None, rank_y=None):
     """Single batched version of ff_dot_product_tris
     TODO: it should eventually go as well
@@ -187,7 +187,7 @@ def ff_dot_product_tris_single_batch(x, y, rank_x=None, rank_y=None):
     return ret.reshape_ff(shape_back)
 
 
-@tf.function(reduce_retracing=True)
+@tf.function(reduce_retracing=False, jit_compile=True)
 def ff_tensor_product(einstr, x, y):
     """
     Wrapper to apply the tensor product for Finite Fields

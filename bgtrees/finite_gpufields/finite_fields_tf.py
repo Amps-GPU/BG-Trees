@@ -234,10 +234,12 @@ def _ff_reduce_internal(accumulated, next_element, operation=operator.add, p=set
 @functools.lru_cache
 def _dispatch_ff_reduction(operation, p):
     """Dispatchs the _ff_reduce_internal with the right settings"""
-    return tf.function(functools.partial(_ff_reduce_internal, operation=operation, p=p))
+    return tf.function(
+        functools.partial(_ff_reduce_internal, operation=operation, p=p), reduce_retracing=False, jit_compile=True
+    )
 
 
-@tf.function
+@tf.function(reduce_retracing=False, jit_compile=True)
 def _ff_reduce_single_axis(input_tensor, axis, operation=operator.add, p=settings.p):
     """Utilize the numpy experimental API and foldl to apply a reduction to the input tensor.
     Acts on integer, the calling function should then make it into a FF.
@@ -247,7 +249,8 @@ def _ff_reduce_single_axis(input_tensor, axis, operation=operator.add, p=setting
     return tf.foldl(reduce_fn, operate_on)
 
 
-@tf.function
+# @tf.function
+@tf.function(reduce_retracing=False, jit_compile=True)
 def _ff_reduce(input_tensor, axis, keepdims, operation):
     raw_input = input_tensor.n
 
