@@ -157,7 +157,7 @@ def ff_dot_product_tris(x, y, rank_x=None, rank_y=None):
     return ret.reshape_ff(shape_back)
 
 
-@tf.function(reduce_retracing=False)
+@tf.function(reduce_retracing=False, jit_compile=True)
 def ff_dot_product_tris_single_batch(x, y, rank_x=None, rank_y=None):
     """Single batched version of ff_dot_product_tris
     TODO: it should eventually go as well
