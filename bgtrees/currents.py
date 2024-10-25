@@ -60,7 +60,7 @@ def forest(lmoms, lpols, verbose=False, einsum=numpy.einsum):
     return einsum("rm,rm->r", lpols[:, 0], J_μ(lmoms[:, 1:], lpols[:, 1:], put_propagator=False, verbose=verbose))
 
 
-@tf.function(reduce_retracing=True)
+@tf.function(reduce_retracing=False)
 def _compute_propagator(mom_slice, eta):
     """Compute the propagator for a slice of momentum in FF.
 
@@ -75,7 +75,7 @@ def _compute_propagator(mom_slice, eta):
     return (1.0 / prop_den).reshape_ff((-1, 1))
 
 
-@tf.function(reduce_retracing=True)
+@tf.function(reduce_retracing=False, jit_compile=True)
 def _vert_3_gluon(slice_left, slice_right):
     """Computes the 3g vertex for the two slices coming in."""
     moms_sl = tf.reduce_sum(slice_left, axis=1)
@@ -83,7 +83,7 @@ def _vert_3_gluon(slice_left, slice_right):
     return new_V3g(moms_sl, moms_sr)
 
 
-@tf.function(reduce_retracing=True)
+@tf.function(reduce_retracing=False)
 def _contract_v3_current(vertex, jnu, jo):
     """Contract the vertex with the two associated currents:
 
@@ -94,7 +94,7 @@ def _contract_v3_current(vertex, jnu, jo):
     return op.ff_dot_product(tmp, jnu, rank_x=3, rank_y=2)  # rmn, rn -> rm
 
 
-@tf.function(reduce_retracing=True)
+@tf.function(reduce_retracing=False)
 def _contract_v4_current(vertex, jnu, jo, jrho):
     """Contract the vertex with the 3 associated currents:
 
@@ -140,8 +140,6 @@ def another_j(lmoms, lpols, put_propagator=True, verbose=False):
             a: int
             b: int
         """
-        if verbose:
-            print(f"Calling currents: a = {a}, b = {b}.")
         # Compute the current current multiplicity
         mul = b - a
         if mul == 1:

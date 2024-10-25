@@ -10,7 +10,7 @@ def μ2(momD, d=None):
     """
     if d is None:
         d = momD.shape[0]
-    return - momD[4:d] @ η[4:d, 4:d] @ momD[4:d]
+    return -momD[4:d] @ η[4:d, 4:d] @ momD[4:d]
 
 
 def momflat(momD, momχ):
