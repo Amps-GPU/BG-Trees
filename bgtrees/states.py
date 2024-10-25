@@ -1,21 +1,6 @@
 import numpy
 
-from .metric_and_verticies import Gamma, η
-
-
-def μ2(momD, d=None):
-    """
-    The 4D mass of a massless D momentum (d=None).
-    For μ^2_d = k^2_4 + ... + k^2_d-1
-    """
-    if d is None:
-        d = momD.shape[0]
-    return - momD[4:d] @ η[4:d, 4:d] @ momD[4:d]
-
-
-def momflat(momD, momχ):
-    """Massless (`flat`) projection of 4D massive momentum onto a reference direction momχ."""
-    return momD[:4] - μ2(momD) * momχ / (2 * momχ @ η[:4, :4] @ momD[:4])
+from .metric_and_verticies import Gamma
 
 
 def εm(oParticles, index, einsum=numpy.einsum):
