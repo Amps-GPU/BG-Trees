@@ -1,33 +1,63 @@
 import numpy
 
-from .metric_and_verticies import Gamma
+from lips import Particle, Particles
+
+from .phase_space import momflat, μ2
 
 
-def εm(oParticles, index, einsum=numpy.einsum):
-    """Negative polarization vector: ε⁻^μ = <i|γ^μ|q]/(√2[iq])"""
-    # Warning: not vectorized over replicas.
-    # <i|γ^μ
-    εm = einsum("xa,mab->mb", numpy.block([oParticles[index].r_sp_u, numpy.zeros((1, 2))]), Gamma)
-    # <i|γ^μ|q]
-    εm = einsum("mb,bx->m", εm, numpy.block([[numpy.zeros((2, 1))], [oParticles.oRefVec.l_sp_u]]))
-    # ε⁻^μ = <i|γ^μ|q]/(√2[iq]) - removed √2 from denominator
-    εm = εm / (einsum("xa,ay->", oParticles[index].l_sp_d, oParticles.oRefVec.l_sp_u))
-    return εm
+def ε1(momD, momχ, field):
+    D, momFlat = len(momD), momflat(momD, momχ)
+    ε1 = Particle(Particles([Particle(momFlat, field=field), Particle(momχ, field=field)],
+                            field=field, fix_mom_cons=False)("(-|2]⟨1|)/([1|2])"), field=field)
+    return numpy.append(ε1.four_mom, (field(0), ) * (D - 4))
 
 
-ε1 = εm
+def ε2(momD, momχ, field):
+    D, momFlat = len(momD), momflat(momD, momχ)
+    ε2 = Particle(Particles([Particle(momFlat, field=field), Particle(momχ, field=field)],
+                            field=field, fix_mom_cons=False)("2(|1]⟨2|)/(⟨1|2⟩)"), field=field)
+    return numpy.append(ε2.four_mom, (field(0), ) * (D - 4))
 
 
-def εp(oParticles, index, einsum=numpy.einsum):
-    """Positive polarization vector: ε⁺^μ = <q|γ^μ|i]/(√2<qi>)"""
-    # Warning: not vectorized over replicas.
-    # <q|γ^μ
-    εp = einsum("xa,mab->mb", numpy.block([oParticles.oRefVec.r_sp_u, numpy.zeros((1, 2))]), Gamma)
-    # <q|γ^μ|i]
-    εp = einsum("mb,bx->m", εp, numpy.block([[numpy.zeros((2, 1))], [oParticles[index].l_sp_u]]))
-    # ε⁺^μ = <q|γ^μ|i]/(<qi>) - removed √2 from denominator
-    εp = εp / (einsum("xa,ay->", oParticles.oRefVec.r_sp_u, oParticles[index].r_sp_d))
-    return εp
+def ε3(momD, momχ, field):
+    D, momFlat = len(momD), momflat(momD, momχ)
+    if D < 5:
+        raise ValueError(f"Not enough dimensions for ε3, need D>=5, was given D={D}.")
+    ε3 = Particle(Particles([Particle(momFlat, field=field), Particle(momχ, field=field),
+                             Particle(momD[:4], field=field)], field=field, fix_mom_cons=False,
+                            internal_masses={'μ2': μ2(momD)})("(|1]⟨1|)-μ2*|2]⟨2|/(⟨2|3|2])"), field=field)
+    return numpy.append(ε3.four_mom, (field(0), ) * (D - 4))
 
 
-ε2 = εp
+def ε3c(momD, momχ, field):
+    return ε3(momD, momχ, field) / μ2(momD)
+
+
+def ε4(momD, momχ, field):
+    D = len(momD)
+    if D < 6:
+        raise ValueError(f"Not enough dimensions for ε4, need D>=6, was given D={D}.")
+    ε4 = numpy.block([numpy.array([0, ] * 4),
+                      numpy.array([[1, 0], [0, -1]]) @ momD[4:6][::-1],
+                      numpy.array([0, ] * (D - 6))]) / μ2(momD, 6)
+    return ε4
+
+
+def ε4c(momD, momχ, field):
+    return ε4(momD, momχ, field) * μ2(momD, 6)
+
+
+def εxs(momD, x):
+    """D >= 7 polarization states. Needs x in {5, ..., D - 2}."""
+    D = len(momD)
+    if D < 7:
+        raise ValueError(f"Not enough dimensions for εx, need D>=7, was given D={D}.")
+    return numpy.block([numpy.array([0, ] * 4),
+                        numpy.array([momD[j] * momD[x + 1] for j in range(4, x + 1)] +
+                                    [-μ2(momD, x + 1)] + [0, ] * (D - x - 2))
+                        ]) / μ2(momD, x + 1) / μ2(momD, x + 2)
+
+
+def εxcs(momD, x):
+    """'Conjugate polarization state."""
+    return εxs(momD, x) * μ2(momD, x + 1) * μ2(momD, x + 2)

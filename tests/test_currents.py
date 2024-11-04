@@ -1,7 +1,7 @@
 from math import sqrt
 
 import lips
-from lips import Particles
+from lips import Particle, Particles
 import numpy
 import pytest
 from syngular import Field
@@ -11,7 +11,7 @@ from bgtrees.finite_gpufields.finite_fields_tf import FiniteField
 from bgtrees.finite_gpufields.operations import ff_dot_product
 from bgtrees.metric_and_verticies import η
 from bgtrees.settings import settings
-from bgtrees.states import εm, εp
+from bgtrees.states import ε1, ε2, ε4, ε3  # , εxs
 
 lips.spinor_convention = "asymmetric"
 chosenP = 2**31 - 19
@@ -30,6 +30,8 @@ def _generate_input(chosen_field, helconf, n=25):
 
     for seed in range(n):
         particle_list = Particles(len(helconf), field=chosen_field, seed=seed)
+        particle_list = Particles([Particle(entry.four_mom, field=chosen_field) for entry in particle_list],
+                                  field=chosen_field)
         particle_list.helconf = helconf
 
         # Prepare hte momentum array
@@ -40,15 +42,23 @@ def _generate_input(chosen_field, helconf, n=25):
 
         # Prepare the polarization array
         lp = []
+        momχ = particle_list.oRefVec.four_mom
         for index, helconf_index in enumerate(helconf):
-            if helconf_index == "p":
-                tmp = [εp(particle_list, index + 1), numpy.array([0, 0, 0, 0])]
-            elif helconf_index == "m":
-                tmp = [εm(particle_list, index + 1), numpy.array([0, 0, 0, 0])]
-            elif helconf_index == "x":
-                tmp = [numpy.array([0, 0, 0, 0, 0, 0, 1, 0])]
+            if helconf_index == "1" or helconf_index == "m":
+                print("minus")
+                tmp = [ε1(lm[index], momχ, chosen_field)]
+                # tmp = [εm(particle_list, index + 1), numpy.array([0, 0, 0, 0])]
+            elif helconf_index == "2" or helconf_index == "p":
+                print("plus")
+                tmp = [ε2(lm[index], momχ, chosen_field)]
+                # tmp = [εp(particle_list, index + 1), numpy.array([0, 0, 0, 0])]
+            elif helconf_index == "3":
+                tmp = [ε3(lm[index], momχ, chosen_field)]
+                # tmp = [numpy.array([0, 0, 0, 0, 0, 0, 1, 0])]
+            elif helconf_index == "4":
+                tmp = [ε4(lm[index], momχ, chosen_field)]
             else:
-                tmp = None
+                raise Exception(f"Polarization request not understood for leg {index}: {helconf_index}.")
             lp.append(numpy.block(tmp))
 
         lpols.append(numpy.array(lp))
@@ -72,7 +82,7 @@ def test_ward_identity(field, n_test=NTEST):
     assert numpy.all(numpy.vectorize(abs)(numpy.einsum("rim->rm", lmoms)) <= sqrt(field.tollerance))
     # polarization . momentum is zero
     assert numpy.all(numpy.vectorize(abs)(numpy.einsum("rim,mn,rin->ri", lmoms, η(D), lpols)) <= sqrt(field.tollerance))
-    # polarization . current is zero
+    # momentum . current is zero
     assert numpy.all(
         numpy.vectorize(abs)(
             numpy.einsum("rm,rm->r", lmoms[:, 0], J_μ(lmoms[:, 1:], lpols[:, 1:], put_propagator=False, verbose=True))
@@ -88,7 +98,7 @@ def _run_test_MHV_amplitude_in_D_eq_4(field, lmoms, lpols, target_result, verbos
     assert numpy.all(numpy.vectorize(abs)(numpy.einsum("rim->rm", lmoms)) <= sqrt(field.tollerance))
     # polarization . momentum is zero
     assert numpy.all(numpy.vectorize(abs)(numpy.einsum("rim,mn,rin->ri", lmoms, η(D), lpols)) <= sqrt(field.tollerance))
-    # polarization . current is zero
+    # polarization . current is the amplitude
     final_result = numpy.einsum(
         "rm,rm->r", lpols[:, 0], J_μ(lmoms[:, 1:], lpols[:, 1:], put_propagator=False, verbose=verbose)
     )
@@ -101,7 +111,7 @@ def test_MHV_amplitude_in_D_eq_4(field, verbose=False, n_test=NTEST):
     helconf = "ppmmmm"
 
     lmoms, lpols, lPs = _generate_input(field, helconf, n_test)
-    target_result = numpy.array([oPs("(32[12]^4)/([12][23][34][45][56][61])") for oPs in lPs])
+    target_result = numpy.array([oPs("(2[12]^4)/([12][23][34][45][56][61])") for oPs in lPs])
     _run_test_MHV_amplitude_in_D_eq_4(field, lmoms, lpols, target_result, verbose=verbose)
 
 
@@ -130,7 +140,7 @@ def test_MHV_amplitude_in_GPU(verbose=False, nt=NTEST):
     chosen_field = Field("finite field", 2**31 - 19, 1)
     helconf = "ppmmmm"
     lmoms, lpols, lPs = _generate_input(chosen_field, helconf, nt)
-    target_result = numpy.array([oPs("(32[12]^4)/([12][23][34][45][56][61])") for oPs in lPs])
+    target_result = numpy.array([oPs("(2[12]^4)/([12][23][34][45][56][61])") for oPs in lPs])
     _run_test_mhv_amplitude_in_gpu(lmoms, lpols, target_result, verbose=verbose)
 
 
