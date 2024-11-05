@@ -56,7 +56,7 @@ def _generate_input(chosen_field, helconf, n=25):
                 tmp = [ε3(lm[index], momχ, chosen_field)]
                 # tmp = [numpy.array([0, 0, 0, 0, 0, 0, 1, 0])]
             elif helconf_index == "4":
-                tmp = [ε4(lm[index], momχ, chosen_field)]
+                tmp = [ε4(lm[index])]
             else:
                 raise Exception(f"Polarization request not understood for leg {index}: {helconf_index}.")
             lp.append(numpy.block(tmp))

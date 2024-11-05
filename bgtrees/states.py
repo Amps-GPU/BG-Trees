@@ -33,7 +33,7 @@ def ε3c(momD, momχ, field):
     return ε3(momD, momχ, field) / μ2(momD)
 
 
-def ε4(momD, momχ, field):
+def ε4(momD):
     D = len(momD)
     if D < 6:
         raise ValueError(f"Not enough dimensions for ε4, need D>=6, was given D={D}.")
@@ -43,8 +43,8 @@ def ε4(momD, momχ, field):
     return ε4
 
 
-def ε4c(momD, momχ, field):
-    return ε4(momD, momχ, field) * μ2(momD, 6)
+def ε4c(momD):
+    return ε4(momD) * μ2(momD, 6)
 
 
 def εxs(momD, x):
