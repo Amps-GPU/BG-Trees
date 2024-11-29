@@ -45,11 +45,9 @@ def _generate_input(chosen_field, helconf, n=25):
         momχ = particle_list.oRefVec.four_mom
         for index, helconf_index in enumerate(helconf):
             if helconf_index == "1" or helconf_index == "m":
-                print("minus")
                 tmp = [ε1(lm[index], momχ, chosen_field)]
                 # tmp = [εm(particle_list, index + 1), numpy.array([0, 0, 0, 0])]
             elif helconf_index == "2" or helconf_index == "p":
-                print("plus")
                 tmp = [ε2(lm[index], momχ, chosen_field)]
                 # tmp = [εp(particle_list, index + 1), numpy.array([0, 0, 0, 0])]
             elif helconf_index == "3":

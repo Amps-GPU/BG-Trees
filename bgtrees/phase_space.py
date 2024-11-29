@@ -17,10 +17,10 @@ def dDimPhaseSpaceQRing(m, D):
     return q
 
 
-def random_phase_space_point(m, D, field, as_dict=False):
+def random_phase_space_point(m, D, field, as_dict=False, seed=None):
     """Return a random m-point D-dimensional phase space point in the given field"""
     qRing = dDimPhaseSpaceQRing(m, D)
-    point = qRing.random_point(field=field)
+    point = qRing.random_point(field=field, seed=seed)
     if as_dict:
         return point
     lDMoms = numpy.array([[point[f"p{i}_{j}"] for j in range(D)] for i in range(1, m + 1)])

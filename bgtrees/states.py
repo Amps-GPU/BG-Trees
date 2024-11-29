@@ -61,3 +61,41 @@ def εxs(momD, x):
 def εxcs(momD, x):
     """'Conjugate polarization state."""
     return εxs(momD, x) * μ2(momD, x + 1) * μ2(momD, x + 2)
+
+
+def all_states(momD, momχ, field):
+    """Returns a complete set of states and their conjugates."""
+
+    D = len(momD)
+
+    if D < 4:
+        raise ValueError("Expected at least 4 dimensions.")
+
+    e1 = e2c = ε1(momD, momχ, field)
+    e2 = e1c = ε2(momD, momχ, field)
+
+    states = [e1, e2, ]
+    states_conj = [e1c, e2c, ]
+
+    if D == 4:
+        return states, states_conj
+
+    e3, e3c = ε3(momD, momχ, field), ε3c(momD, momχ, field)
+    states += [e3, ]
+    states_conj += [e3c, ]
+
+    if D == 5:
+        return states, states_conj
+
+    e4, e4c = ε4(momD), ε4c(momD)
+    states += [e4, ]
+    states_conj += [e4c, ]
+
+    if D == 5:
+        return states, states_conj
+
+    exs, excs = [εxs(momD, x) for x in range(5, D - 1)], [εxcs(momD, x) for x in range(5, D - 1)]
+    states += exs
+    states_conj += excs
+
+    return states, states_conj
