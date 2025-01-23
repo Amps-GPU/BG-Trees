@@ -1,3 +1,9 @@
+"""
+Definition of states (polarisation vectors) in D dimensions.
+See eq.~11 to 18 of arXiv:250X.XXXXX.
+"""
+
+
 import numpy
 
 from lips import Particle, Particles
@@ -6,7 +12,7 @@ from .phase_space import momflat, μ2
 
 
 def ε1(momD, momχ, field):
-    """Plus helicity"""
+    """Corresponds to plus helicity in D=4."""
     D, momFlat = len(momD), momflat(momD, momχ)
     ε1 = Particle(Particles([Particle(momFlat, field=field), Particle(momχ, field=field)],
                             field=field, fix_mom_cons=False)("(-|2]⟨1|)/([1|2])"), field=field)
@@ -14,7 +20,7 @@ def ε1(momD, momχ, field):
 
 
 def ε2(momD, momχ, field):
-    """Minus helicity"""
+    """Corresponds to minus helicity in D=4"""
     D, momFlat = len(momD), momflat(momD, momχ)
     ε2 = Particle(Particles([Particle(momFlat, field=field), Particle(momχ, field=field)],
                             field=field, fix_mom_cons=False)("2(|1]⟨2|)/(⟨1|2⟩)"), field=field)
