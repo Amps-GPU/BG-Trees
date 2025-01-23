@@ -6,6 +6,7 @@ from .phase_space import momflat, μ2
 
 
 def ε1(momD, momχ, field):
+    """Plus helicity"""
     D, momFlat = len(momD), momflat(momD, momχ)
     ε1 = Particle(Particles([Particle(momFlat, field=field), Particle(momχ, field=field)],
                             field=field, fix_mom_cons=False)("(-|2]⟨1|)/([1|2])"), field=field)
@@ -13,6 +14,7 @@ def ε1(momD, momχ, field):
 
 
 def ε2(momD, momχ, field):
+    """Minus helicity"""
     D, momFlat = len(momD), momflat(momD, momχ)
     ε2 = Particle(Particles([Particle(momFlat, field=field), Particle(momχ, field=field)],
                             field=field, fix_mom_cons=False)("2(|1]⟨2|)/(⟨1|2⟩)"), field=field)
