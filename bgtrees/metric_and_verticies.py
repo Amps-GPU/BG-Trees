@@ -53,7 +53,7 @@ def new_V3g(lp1, lp2):
     if D is None:
         D = settings.D
 
-    mm = η(D)
+    mm = tf.linalg.diag_part(η(D))
     r1 = tf.tensordot(lp1.n, mm, 0)
     r2 = tf.tensordot(lp2.n, mm, 0)
 

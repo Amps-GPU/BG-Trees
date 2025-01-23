@@ -14,7 +14,7 @@ from bgtrees.settings import settings
 from bgtrees.states import ε1, ε2, ε4, ε3  # , εxs
 
 lips.spinor_convention = "asymmetric"
-chosenP = 2**31 - 19
+chosenP = 2 ** 31 - 19
 NTEST = 25
 settings.run_tf_eagerly()
 
