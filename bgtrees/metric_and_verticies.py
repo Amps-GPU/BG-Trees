@@ -14,7 +14,7 @@ Gamma5 = γ5 = numpy.block([[numpy.identity(2), numpy.zeros((2, 2))], [numpy.zer
 def MinkowskiMetric(D):
     """D-dimensional Minkowski metric in the mostly negative convention."""
     return numpy.diag([1] + [-1] * (D - 1)).astype(settings.dtype)
-    # The metric can be changed here to a different convention, 
+    # The metric can be changed here to a different convention,
     # e.g. to match the alternating metric used in Caravel.
     # NB: be careful with the definition of polarization states.
     # return numpy.diag([1, -1] * (D // 2)).astype(settings.dtype)

@@ -89,7 +89,7 @@ def test_ward_identity(field, n_test=NTEST):
     )
 
 
-def _run_test_MHV_amplitude_in_D_eq_4(field, lmoms, lpols, target_result, verbose=False):
+def _run_test_amplitude_in_D_eq_4(field, lmoms, lpols, target_result, verbose=False):
     D = lmoms.shape[-1]
 
     # momentum is conserved
@@ -106,14 +106,27 @@ def _run_test_MHV_amplitude_in_D_eq_4(field, lmoms, lpols, target_result, verbos
 
 @pytest.mark.parametrize("field", [Field("finite field", chosenP, 1), Field("mpc", 0, 16)])
 def test_MHV_amplitude_in_D_eq_4(field, verbose=False, n_test=NTEST):
-    helconf = "ppmmmm"
+    helconf = "ppmmm"
 
     lmoms, lpols, lPs = _generate_input(field, helconf, n_test)
-    target_result = numpy.array([oPs("(2[12]^4)/([12][23][34][45][56][61])") for oPs in lPs])
-    _run_test_MHV_amplitude_in_D_eq_4(field, lmoms, lpols, target_result, verbose=verbose)
+    target_result = numpy.array([oPs("(2[12]^4)/([12][23][34][45][51])") for oPs in lPs])
+    _run_test_amplitude_in_D_eq_4(field, lmoms, lpols, target_result, verbose=verbose)
 
 
-def _run_test_mhv_amplitude_in_gpu(lmoms, lpols, target_result, verbose=False):
+@pytest.mark.parametrize("field", [Field("finite field", chosenP, 1), Field("mpc", 0, 16)])
+def test_NMHV_amplitude_in_D_eq_4(field, verbose=False, n_test=NTEST):
+    helconf = "pmpmpm"
+
+    lmoms, lpols, lPs = _generate_input(field, helconf, n_test)
+    target_result = numpy.array([oPs("""
+                                     +(+4[1|3]⁴⟨4|6⟩⁴)/([1|2][2|3]⟨4|5⟩⟨5|6⟩⟨4|2+3|1]⟨6|1+2|3]s_123)
+                                     +(+4[1|5]⁴⟨2|4⟩⁴)/([1|6]⟨2|3⟩⟨3|4⟩[5|6]⟨2|1+6|5]⟨4|2+3|1]s_234)
+                                     +(-4[3|5]⁴⟨2|6⟩⁴)/(⟨1|2⟩⟨1|6⟩[3|4][4|5]⟨2|1+6|5]⟨6|1+2|3]s_345)
+                                     """) for oPs in lPs])
+    _run_test_amplitude_in_D_eq_4(field, lmoms, lpols, target_result, verbose=verbose)
+
+
+def _run_test_amplitude_in_gpu(lmoms, lpols, target_result, verbose=False):
     # This function can only be run with the GPU enabled
     prev_setting = settings.use_gpu
     settings.use_gpu = True
@@ -136,10 +149,23 @@ def _run_test_mhv_amplitude_in_gpu(lmoms, lpols, target_result, verbose=False):
 def test_MHV_amplitude_in_GPU(verbose=False, nt=NTEST):
     """Same test as above using the Finite Field container"""
     chosen_field = Field("finite field", 2**31 - 19, 1)
-    helconf = "ppmmmm"
+    helconf = "ppmmm"
     lmoms, lpols, lPs = _generate_input(chosen_field, helconf, nt)
-    target_result = numpy.array([oPs("(2[12]^4)/([12][23][34][45][56][61])") for oPs in lPs])
-    _run_test_mhv_amplitude_in_gpu(lmoms, lpols, target_result, verbose=verbose)
+    target_result = numpy.array([oPs("(2[12]^4)/([12][23][34][45][51])") for oPs in lPs])
+    _run_test_amplitude_in_gpu(lmoms, lpols, target_result, verbose=verbose)
+
+
+def test_NMHV_amplitude_in_GPU(verbose=False, nt=NTEST):
+    """Same test as above using the Finite Field container"""
+    chosen_field = Field("finite field", 2**31 - 19, 1)
+    helconf = "pmpmpm"
+    lmoms, lpols, lPs = _generate_input(chosen_field, helconf, nt)
+    target_result = numpy.array([oPs("""
+                                    +(+4[1|3]⁴⟨4|6⟩⁴)/([1|2][2|3]⟨4|5⟩⟨5|6⟩⟨4|2+3|1]⟨6|1+2|3]s_123)
+                                    +(+4[1|5]⁴⟨2|4⟩⁴)/([1|6]⟨2|3⟩⟨3|4⟩[5|6]⟨2|1+6|5]⟨4|2+3|1]s_234)
+                                    +(-4[3|5]⁴⟨2|6⟩⁴)/(⟨1|2⟩⟨1|6⟩[3|4][4|5]⟨2|1+6|5]⟨6|1+2|3]s_345)
+                                    """) for oPs in lPs])
+    _run_test_amplitude_in_gpu(lmoms, lpols, target_result, verbose=verbose)
 
 
 # test_MHV_amplitude_in_GPU()
