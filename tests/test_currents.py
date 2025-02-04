@@ -37,7 +37,7 @@ def _generate_input(chosen_field, helconf, n=25):
                                   field=chosen_field)
         particle_list.helconf = helconf
 
-        # Prepare hte momentum array
+        # Prepare the momentum array
         lm = []
         for oParticle in particle_list:
             lm.append(numpy.block([oParticle.four_mom, numpy.array([0, 0, 0, 0])]))
