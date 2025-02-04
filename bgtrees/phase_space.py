@@ -3,7 +3,7 @@ import sympy
 
 from syngular import Ring, Ideal, QRing
 
-from .metric_and_verticies import η
+from .metric_and_vertices import η
 
 
 def dDimPhaseSpaceQRing(m, D):

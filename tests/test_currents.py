@@ -9,7 +9,7 @@ from syngular import Field
 from bgtrees.currents import J_μ, another_j
 from bgtrees.finite_gpufields.finite_fields_tf import FiniteField
 from bgtrees.finite_gpufields.operations import ff_dot_product
-from bgtrees.metric_and_verticies import η
+from bgtrees.metric_and_vertices import η
 from bgtrees.settings import settings
 from bgtrees.states import ε1, ε2, ε4, ε3  # , εxs
 

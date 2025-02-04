@@ -5,7 +5,7 @@ import lips
 from syngular import Field
 from pyadic import rationalise
 
-from bgtrees.metric_and_verticies import η
+from bgtrees.metric_and_vertices import η
 from bgtrees.states import all_states
 from bgtrees.phase_space import random_phase_space_point, μ2
 

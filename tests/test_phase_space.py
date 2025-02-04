@@ -5,7 +5,7 @@ import numpy
 from lips import Particle
 from syngular import Field
 
-from bgtrees.metric_and_verticies import η
+from bgtrees.metric_and_vertices import η
 from bgtrees.phase_space import random_phase_space_point, momflat
 
 

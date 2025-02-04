@@ -6,7 +6,7 @@ import tensorflow as tf
 from bgtrees.finite_gpufields import operations as op
 from bgtrees.finite_gpufields.finite_fields_tf import FiniteField
 
-from .metric_and_verticies import V3g, V4g, new_V3g, η
+from .metric_and_vertices import V3g, V4g, new_V3g, η
 from .settings import settings
 
 

@@ -2,7 +2,7 @@ import numpy
 import tensorflow
 
 from bgtrees.finite_gpufields import FiniteField
-from bgtrees.metric_and_verticies import MinkowskiMetric, V3g, new_V3g
+from bgtrees.metric_and_vertices import MinkowskiMetric, V3g, new_V3g
 from bgtrees.settings import settings
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
