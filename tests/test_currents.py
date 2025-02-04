@@ -29,7 +29,10 @@ def _generate_input(chosen_field, helconf, n=25):
     lPs = []
 
     for seed in range(n):
+        # this randomizes the values of the spinors when the field is a finite field
         particle_list = Particles(len(helconf), field=chosen_field, seed=seed)
+        # this recomputes the spinors with the conventional definition 
+        # meaning they may differ by a little group factor (it is needed to match the states)
         particle_list = Particles([Particle(entry.four_mom, field=chosen_field) for entry in particle_list],
                                   field=chosen_field)
         particle_list.helconf = helconf
