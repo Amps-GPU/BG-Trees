@@ -9,13 +9,11 @@ from .tools import gpu_constant, gpu_function
 Gamma = γμ = numpy.block([[numpy.zeros((4, 2, 2)), Pauli_bar], [Pauli, numpy.zeros((4, 2, 2))]])
 Gamma5 = γ5 = numpy.block([[numpy.identity(2), numpy.zeros((2, 2))], [numpy.zeros((2, 2)), -numpy.identity(2)]])
 
-alternating_metric = False  # debug setting, leave to false
-
 
 @gpu_constant
 def MinkowskiMetric(D):
     """D-dimensional Minkowski metric in the mostly negative convention."""
-    if alternating_metric:
+    if settings.alternating_metric:
         # The metric can be changed here to a different convention,
         # e.g. to match the alternating metric used in Caravel.
         # NB: be careful with the definition of polarization states.
