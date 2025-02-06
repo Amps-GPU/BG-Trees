@@ -35,7 +35,7 @@ def V4g(D):
 
 
 @gpu_function
-@tf.function(reduce_retracing=True)
+@tf.function(reduce_retracing=False, jit_compile=True)
 def V3g(lp1, lp2, einsum=numpy.einsum):
     """3-gluon vertex, upper indices μνρ, D-dimensional"""
     D = lp1.shape[1]
@@ -47,7 +47,7 @@ def V3g(lp1, lp2, einsum=numpy.einsum):
     )
 
 
-@tf.function(reduce_retracing=True)
+@tf.function(reduce_retracing=False, jit_compile=True)
 def new_V3g(lp1, lp2):
     """3-gluon vertex, upper indices μνρ, D-dimensional. Reduce tensor products."""
     D = lp1.shape[1]

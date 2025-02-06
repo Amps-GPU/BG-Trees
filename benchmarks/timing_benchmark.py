@@ -20,8 +20,7 @@ settings.use_gpu = True
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument(
-        "data_file",
-        help="A npz data file with the right information (use `create_array` to run this benchmark)",
+        "data_file", help="A npz data file with the right information (use `create_array` to run this benchmark)"
     )
     parser.add_argument(
         "-n",
@@ -31,9 +30,7 @@ if __name__ == "__main__":
         type=int,
         default=[10, 100, 1000],
     )
-    parser.add_argument(
-        "-a", "--average", help="Run <average> times and take the average", type=int, default=1
-    )
+    parser.add_argument("-a", "--average", help="Run <average> times and take the average", type=int, default=1)
     parser.add_argument("-o", "--output", help="Output file for results as <n> <events>", type=str)
     parser.add_argument("--profile", action="store_true")
     args = parser.parse_args()
@@ -78,7 +75,7 @@ if __name__ == "__main__":
 
         timing_raw = 0
 
-        for _ in range(args.average):
+        for nrun in range(args.average):
             start = time()
             total_final_results = []
 
@@ -92,15 +89,18 @@ if __name__ == "__main__":
                 total_final_results.append(final_result)
 
             end = time()
+            if nrun == 0 and args.average > 1:
+                # Don't count the first run
+                continue
             timing_raw += end - start
 
-        timing = timing_raw / args.average
+        timing = timing_raw / np.maximum(args.average - 1, 1)
         res_per_n[nev] = timing
 
         print(f"n = {nev} took {timing:.5}s")
 
-#         finres = np.concatenate([i.values.numpy() for i in total_final_results])
-#         np.testing.assert_allclose(finres, load_info["target"][:nev])
+    #         finres = np.concatenate([i.values.numpy() for i in total_final_results])
+    #         np.testing.assert_allclose(finres, load_info["target"][:nev])
 
     if args.profile:
         tf.profiler.experimental.stop()
