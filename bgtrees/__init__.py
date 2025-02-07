@@ -9,6 +9,7 @@
 """
 
 import numpy as np
+import lips
 
 from ._version import __version__  # noqa
 from .currents import J_μ, another_j
@@ -39,6 +40,7 @@ def generate_batch_points(multiplicity=4, dimension=6, batch_size=3, field_type=
     if field_type.lower() in ("ff", "finitefield"):
         field = Field("finite field", PVAL, 1)
         settings.dtype = np.int64
+        lips.spinor_convention = "asymmetric"
 
         def convert(xinput):
             # Make it into a container
