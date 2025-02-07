@@ -100,12 +100,10 @@ def compute_current_j_mu(lmoms, lpols, put_propagator=True):
         # Safety check: they are both finite fields
         if (tm := type(lmoms)) != (tp := type(lpols)):
             raise TypeError(
-                f"If a either momenta or polarization are Finite Fields both must be. Momenta: {tm}, Polarizations: {tp}"
+                f"If either momenta or polarization are Finite Fields both must be. Momenta: {tm}, Polarizations: {tp}"
             )
         # If we have a Finite Field container and they are both finite field, we are good to go
         return another_j(lmoms, lpols, put_propagator=put_propagator)
-
-    settings.use_gpu = False
 
     if (tm := type(lmoms.flat[0])) != (tp := type(lpols.flat[0])):
         raise TypeError(f"The type of momenta ({tm}) and polarizations ({tp}) differ.")
