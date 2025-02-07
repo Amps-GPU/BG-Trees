@@ -211,7 +211,6 @@ def test_D_dim_amplitude_vs_Caravel(verbose=False, nt=NTEST):
     prev_setting = settings.use_gpu
     settings.use_gpu = False
 
-    import ipdb; ipdb.set_trace()
     res_cpu = numpy.einsum("rm,rm->r", lpols[:, 0], J_μ(lmoms[:, 1:], lpols[:, 1:], put_propagator=False, verbose=verbose))
 
     settings.use_gpu = True
