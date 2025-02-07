@@ -1,7 +1,6 @@
 import numpy
 import sympy
-
-from syngular import Ring, Ideal, QRing
+from syngular import Ideal, QRing, Ring
 
 from .metric_and_vertices import η
 
@@ -11,7 +10,7 @@ def dDimPhaseSpaceQRing(m, D):
     momenta = numpy.array([numpy.array([sympy.symbols(f"p{i}_{j}") for j in range(D)]) for i in range(1, m + 1)])
     on_shell_relations = [momentum @ η(D) @ momentum for momentum in momenta]
     momentum_conservation = sum(momenta).tolist()
-    r = Ring('0', tuple(momenta.flatten().tolist()), 'dp')
+    r = Ring("0", tuple(momenta.flatten().tolist()), "dp")
     i = Ideal(r, on_shell_relations + momentum_conservation)
     q = QRing(r, i)
     return q
@@ -35,7 +34,7 @@ def μ2(momD, d=None):
     D = momD.shape[0]
     if d is None:
         d = D
-    return - momD[4:d] @ η(D)[4:d, 4:d] @ momD[4:d]
+    return -momD[4:d] @ η(D)[4:d, 4:d] @ momD[4:d]
 
 
 def momflat(momD, momχ):

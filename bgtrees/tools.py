@@ -1,4 +1,5 @@
 import functools
+import operator
 
 import numpy
 import tensorflow
@@ -54,3 +55,58 @@ def gpu_function(func):
         return func(*args, **kwargs)
 
     return wrapper
+
+
+def _oinsum(eq, *arrays):
+    """A ``einsum`` implementation for ``numpy`` object arrays."""
+    lhs, output = eq.split("->")
+    inputs = lhs.split(",")
+
+    sizes = {}
+    for term, array in zip(inputs, arrays):
+        for k, d in zip(term, array.shape):
+            sizes[k] = d
+
+    out_size = tuple(sizes[k] for k in output)
+    out = numpy.empty(out_size, dtype=object)
+
+    inner = [k for k in sizes if k not in output]
+    inner_size = [sizes[k] for k in inner]
+
+    for coo_o in numpy.ndindex(*out_size):
+        coord = dict(zip(output, coo_o))
+
+        def gen_inner_sum():
+            for coo_i in numpy.ndindex(*inner_size):
+                coord.update(dict(zip(inner, coo_i)))
+
+                locs = []
+                for term in inputs:
+                    locs.append(tuple(coord[k] for k in term))
+
+                elements = []
+                for array, loc in zip(arrays, locs):
+                    elements.append(array[loc])
+
+                yield functools.reduce(operator.mul, elements)
+
+        tmp = functools.reduce(operator.add, gen_inner_sum())
+        out[coo_o] = tmp
+
+    # if the output is made of finite fields, take them out
+    if isinstance(tmp, FiniteField) and len(out_size) == 0:
+        out = tmp
+    elif isinstance(tmp, FiniteField):
+        p = tmp.p
+
+        def unff(x):
+            if isinstance(x, FiniteField):
+                return x.n.numpy()
+            return x
+
+        vunff = numpy.vectorize(unff)
+
+        new_out = vunff(out)
+        out = FiniteField(new_out, p)
+
+    return out

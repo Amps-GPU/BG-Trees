@@ -160,7 +160,6 @@ def ff_dot_product_tris(x, y, rank_x=None, rank_y=None):
 @tf.function(reduce_retracing=False)
 def ff_dot_product_tris_single_batch(x, y, rank_x=None, rank_y=None):
     """Single batched version of ff_dot_product_tris
-    TODO: it should eventually go as well
     """
     if rank_x is None:
         rank_x = len(x.shape)
