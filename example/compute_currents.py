@@ -8,6 +8,7 @@
 """
 
 import numpy as np
+import tensorflow as tf
 
 from bgtrees import compute_current_j_mu, generate_batch_points
 from bgtrees.finite_gpufields import ff_dot_product
@@ -49,3 +50,9 @@ lpols = np.array(
 )
 current = compute_current_j_mu(lmoms[:, 1:], lpols[:, 1:], put_propagator=False)
 res = np.einsum("rm, rm->r", lpols[:, 0], current)
+
+# Pass tensorflow quantities instead of numpy arrays
+lmoms_tf = tf.cast(lmoms, dtype=tf.complex128)
+lpols_tf = tf.cast(lpols, dtype=tf.complex128)
+current_tf = compute_current_j_mu(lmoms_tf[:, 1:], lpols_tf[:, 1:], put_propagator=False)
+res_tf = np.einsum("rm, rm->r", lpols_tf[:, 0], current_tf)

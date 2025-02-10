@@ -8,8 +8,9 @@
             generate a batch momentum-conserving phase space point for a given field
 """
 
-import numpy as np
 import lips
+import numpy as np
+import tensorflow as tf
 
 from ._version import __version__  # noqa
 from .currents import J_μ, another_j
@@ -17,8 +18,6 @@ from .finite_gpufields.finite_fields_tf import FiniteField
 from .phase_space import random_phase_space_point
 from .settings import settings
 from .states import ε1, ε2, ε3, ε4
-
-PVAL = settings.p
 
 
 def generate_batch_points(multiplicity=4, dimension=6, batch_size=3, field_type="ff", helconf="ppmm"):
@@ -38,14 +37,14 @@ def generate_batch_points(multiplicity=4, dimension=6, batch_size=3, field_type=
         raise ValueError(f"Please, make sure that multiplicity ({multiplicity}) and helconf ({helconf}) are consistent")
 
     if field_type.lower() in ("ff", "finitefield"):
-        field = Field("finite field", PVAL, 1)
+        field = Field("finite field", settings.p, 1)
         settings.dtype = np.int64
         lips.spinor_convention = "asymmetric"
 
         def convert(xinput):
             # Make it into a container
             # TODO: check whether there's a benefit on the container in CPU as well, otherwise keep the modP type
-            return FiniteField(np.array(xinput).astype(int), PVAL)
+            return FiniteField(np.array(xinput).astype(int), settings.p)
 
     elif field_type.lower() in ("mpc", "float"):
         field = Field("mpc", 0, 300)
@@ -107,8 +106,15 @@ def compute_current_j_mu(lmoms, lpols, put_propagator=True):
         # If we have a Finite Field container and they are both finite field, we are good to go
         return another_j(lmoms, lpols, put_propagator=put_propagator)
 
-    if (tm := type(lmoms.flat[0])) != (tp := type(lpols.flat[0])):
-        raise TypeError(f"The type of momenta ({tm}) and polarizations ({tp}) differ.")
-
     # Depending on the type of the input we can use different versions of J_mu
-    return J_μ(lmoms, lpols, put_propagator, einsum=np.einsum)
+    if isinstance(lmoms, np.ndarray):
+        if (tm := type(lmoms.flat[0])) != (tp := type(lpols.flat[0])):
+            raise TypeError(f"The type of momenta ({tm}) and polarizations ({tp}) differ.")
+
+        return J_μ(lmoms, lpols, put_propagator, einsum=np.einsum)
+    elif isinstance(lmoms, tf.Tensor):
+        return J_μ(lmoms, lpols, put_propagator, einsum=tf.einsum)
+    else:
+        raise TypeError(
+            f"Type {type(lmoms)} not recognized or supported. You might be lucky accessing directly the low-level interface?"
+        )
