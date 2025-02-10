@@ -116,5 +116,6 @@ def compute_current_j_mu(lmoms, lpols, put_propagator=True):
         return J_μ(lmoms, lpols, put_propagator, einsum=tf.einsum)
     else:
         raise TypeError(
-            f"Type {type(lmoms)} not recognized or supported. You might be lucky accessing directly the low-level interface?"
+            f"Type {type(lmoms)} not recognized or supported. "
+            "You might be lucky accessing directly the low-level interface?"
         )
