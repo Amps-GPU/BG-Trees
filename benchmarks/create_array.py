@@ -5,7 +5,7 @@ from lips import Particles
 import numpy as np
 from syngular import Field
 
-from bgtrees.states import εm, εp
+from bgtrees.states import ε2 as εm, ε1 as εp
 
 lips.spinor_convention = "asymmetric"
 
