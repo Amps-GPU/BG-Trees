@@ -11,6 +11,7 @@ import pytest
 import tensorflow as tf
 
 from bgtrees.finite_gpufields import FiniteField
+from bgtrees.tools import _oinsum as oinsum
 from bgtrees.finite_gpufields.operations import (
     ff_dot_product,
     ff_dot_product_single_batch,
