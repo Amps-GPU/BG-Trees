@@ -10,6 +10,7 @@ class Settings:
     D: int = 4
     dtype: type = np.int64
     p: int = 2**31 - 19
+    alternating_metric: bool = False  # debug setting e.g. to match Caravel, leave to false
 
     # Tensorflow settings
     def run_tf_eagerly(self):

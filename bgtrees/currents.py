@@ -1,3 +1,10 @@
+"""
+    Low-level vectorized current builders.
+
+    By using bgtrees.compute_current_j_mu (from __init__.py) the right function
+    will be used automagically.
+"""
+
 import functools
 
 import numpy
@@ -6,16 +13,13 @@ import tensorflow as tf
 from bgtrees.finite_gpufields import operations as op
 from bgtrees.finite_gpufields.finite_fields_tf import FiniteField
 
-from .metric_and_verticies import V3g, V4g, new_V3g, η
+from .metric_and_vertices import V3g, V4g, new_V3g, η
 from .settings import settings
 
 
 # @gpu_function
 def J_μ(lmoms, lpols, put_propagator=True, depth=0, verbose=False, einsum=numpy.einsum):
-    """Recursive vectorized current builder. End of recursion is polarization tensors.
-
-    TODO: try to merge this and another_j
-    """
+    """Recursive vectorized current builder. End of recursion is polarization tensors."""
 
     assert lmoms.shape[:2] == lpols.shape[:2]
     replicas, multiplicity, D = lmoms.shape

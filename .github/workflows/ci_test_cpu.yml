@@ -27,6 +27,8 @@ jobs:
 
     - name: Install dependencies
       run: |
+        sudo apt-get update
+        sudo apt-get install singular
         pip install .[tests]
         # Try building by hand just in case
         python build.py --cpu-only

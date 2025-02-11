@@ -11,13 +11,13 @@ Gamma5 = γ5 = numpy.block([[numpy.identity(2), numpy.zeros((2, 2))], [numpy.zer
 
 
 @gpu_constant
-def diag_mink(D):
-    return numpy.array([1] + [-1] * (D - 1)).astype(settings.dtype)
-
-
-@gpu_constant
 def MinkowskiMetric(D):
     """D-dimensional Minkowski metric in the mostly negative convention."""
+    if settings.alternating_metric:
+        # The metric can be changed here to a different convention,
+        # e.g. to match the alternating metric used in Caravel.
+        # NB: be careful with the definition of polarization states.
+        return numpy.diag([1, -1] * (D // 2)).astype(settings.dtype)
     return numpy.diag([1] + [-1] * (D - 1)).astype(settings.dtype)
 
 
@@ -35,7 +35,6 @@ def V4g(D):
 
 
 @gpu_function
-@tf.function(reduce_retracing=False, jit_compile=True)
 def V3g(lp1, lp2, einsum=numpy.einsum):
     """3-gluon vertex, upper indices μνρ, D-dimensional"""
     D = lp1.shape[1]
@@ -54,7 +53,7 @@ def new_V3g(lp1, lp2):
     if D is None:
         D = settings.D
 
-    mm = diag_mink(D)
+    mm = tf.linalg.diag_part(η(D))
     r1 = tf.tensordot(lp1.n, mm, 0)
     r2 = tf.tensordot(lp2.n, mm, 0)
 
