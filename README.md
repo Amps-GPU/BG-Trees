@@ -1,5 +1,9 @@
 # Berends-Giele Recursion for Trees on the GPU
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14859785.svg)](https://doi.org/10.5281/zenodo.14859785)
+[![arxiv](https://img.shields.io/badge/arXiv-hep--ph%2F2502.07060-%23B31B1B.svg)](https://arxiv.org/abs/2502.07060)
+
+
 [![CI Lint](https://github.com/Amps-GPU/BG-Trees/actions/workflows/ci_lint.yml/badge.svg)](https://github.com/Amps-GPU/BG-Trees/actions/workflows/ci_lint.yml)
 [![CI Test](https://github.com/Amps-GPU/BG-Trees/actions/workflows/ci_test_gpu.yml/badge.svg)](https://github.com/Amps-GPU/BG-Trees/actions/workflows/ci_test_gpu.yml)
 [![Coverage](https://img.shields.io/badge/Coverage-74%25-yellow?labelColor=2a2f35)](https://github.com/Amps-GPU/BG-Trees/actions)
@@ -42,3 +46,22 @@ In addition it is recommended to install tools like `black` or `isort` to standa
 The `FiniteField` type defined in `bgtrees/finite_gpufields` powers the hardware agnostic part of this package.
 The `FiniteField` type is a wrapper of GPU-aware arrays and the prime number `p` defining the cardinality of the field.
 Operations involving `FiniteField` will try to use the GPU whenever possible, with a fallback to CPU when the operation is not possible or not implemented.
+
+## Citation policy
+
+If this code has been useful in your research please cite the paper 
+
+```
+@article{Cruz-Martinez:2025kwa,
+    author = "Cruz-Martinez, Juan M. and De Laurentis, Giuseppe and Pellen, Mathieu",
+    title = "{Accelerating Berends-Giele recursion for gluons in arbitrary dimensions over finite fields}",
+    eprint = "2502.07060",
+    archivePrefix = "arXiv",
+    primaryClass = "hep-ph",
+    reportNumber = "CERN-TH-2025-017, FR-PHENO-2025-001",
+    month = "2",
+    year = "2025"
+}
+```
+
+as well as the [Zenodo entry](10.5281/zenodo.14859784)
