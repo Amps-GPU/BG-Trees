@@ -2,8 +2,7 @@
 #ifndef KERNEL_dot_product_H_
 #define KERNEL_dot_product_H_
 
-#define PMOD 2147483629
-
+#include "pmod.h"
 #include "tensorflow/core/framework/tensor.h"
 #include "tensorflow/core/framework/op_kernel.h"
 

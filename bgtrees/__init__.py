@@ -36,6 +36,8 @@ def generate_batch_points(multiplicity=4, dimension=6, batch_size=3, field_type=
     if len(helconf) != multiplicity:
         raise ValueError(f"Please, make sure that multiplicity ({multiplicity}) and helconf ({helconf}) are consistent")
 
+    random_ps_function = random_phase_space_point
+
     if field_type.lower() in ("ff", "finitefield"):
         field = Field("finite field", settings.p, 1)
         settings.dtype = np.int64
@@ -46,7 +48,25 @@ def generate_batch_points(multiplicity=4, dimension=6, batch_size=3, field_type=
             # TODO: check whether there's a benefit on the container in CPU as well, otherwise keep the modP type
             return FiniteField(np.array(xinput).astype(int), settings.p)
 
-    elif field_type.lower() in ("mpc", "float"):
+    elif field_type.lower() in ("real", "complex") and dimension == 4:
+        # Take a shortcut in this specific case
+        if field_type.lower() == "real":
+            prec = 8
+            mreal = True
+        else:
+            prec = 16
+            mreal = False
+
+        field = Field("mpc", 0, prec)
+
+        # Take over the random phase space function
+        def random_ps_function(m, _d, _field, _seed=None):
+            """Compute a random ps point using lips.Particles instead of syngular.
+            Works only in the specific case of a 4D situation"""
+            plist = lips.Particles(max(4, m), real_momenta=mreal, field=field)
+            return [i.four_mom for i in plist]
+
+    elif field_type.lower() in ("mpc", "float", "complex", "real"):
         field = Field("mpc", 0, 300)
         # settings.dtype = np.float64
 
@@ -59,9 +79,9 @@ def generate_batch_points(multiplicity=4, dimension=6, batch_size=3, field_type=
     lmoms = []
     lpols = []
 
-    reference_vector = random_phase_space_point(2, 4, field, seed=74)[0]
+    reference_vector = random_ps_function(2, 4, field, seed=74)[0]
     for _ in range(batch_size):
-        momenta = np.array(random_phase_space_point(multiplicity, dimension, field))
+        momenta = np.array(random_ps_function(multiplicity, dimension, field))
 
         tmp = []
         for idx, hel in enumerate(helconf):
