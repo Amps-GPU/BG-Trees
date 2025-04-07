@@ -2,7 +2,6 @@
 #ifndef KERNEL_dot_product_H_
 #define KERNEL_dot_product_H_
 
-#include "pmod.h"
 #include "tensorflow/core/framework/tensor.h"
 #include "tensorflow/core/framework/op_kernel.h"
 
@@ -26,6 +25,7 @@ namespace myfunctor {
 				const int size_j, // size of the uncontracted first index of input X
 				const int size_k, // size of the uncontracted last index of input Y
 				const int size_i, // contracted index
+                const int p, // size of the finite field
 				const T* x, // input tensor X
 				const T* y, // input tensor Y
 				T* out      // output tensor
@@ -39,6 +39,8 @@ class DotProductOp: public OpKernel {
 public:
 	explicit DotProductOp(OpKernelConstruction* context);
 	void Compute(OpKernelContext* context) override;
+private:
+    int p_;
 };
 
 #endif //KERNEL_dot_product_H_

@@ -3,6 +3,8 @@ from pathlib import Path
 
 import tensorflow as tf
 
+from ...settings import settings
+
 # Loading of the modules
 # For the time being, go to the folder where I'm compiling and take them from there
 _modules_folder = Path(__file__).parent
@@ -17,17 +19,17 @@ chdir(_orig_folder)
 # Functions
 @tf.function
 def wrapper_dot_product(x, y):
-    ret = dot_product_module.dot_product(x, y)
+    ret = dot_product_module.dot_product(x, y, p = settings.p)
     return ret
 
 
 @tf.function
 def wrapper_dot_product_single_batch(x, y):
-    ret = dot_product_module.dot_product_single_batch(x, y)
+    ret = dot_product_module.dot_product_single_batch(x, y, p = settings.p)
     return ret
 
 
 @tf.function
 def wrapper_inverse(x):
-    ret = inverse_module.inverse(x)
+    ret = inverse_module.inverse(x, p=settings.p)
     return ret

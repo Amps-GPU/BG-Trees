@@ -12,7 +12,7 @@ inverse_module = tf.load_op_library("./inverse.so")
 
 @tf.function
 def wrapper_inverse(x):
-    return inverse_module.inverse(x)
+    return inverse_module.inverse(x, p = PMOD)
 
 
 def check_galois(x, pmod=PMOD, nmax=1000):

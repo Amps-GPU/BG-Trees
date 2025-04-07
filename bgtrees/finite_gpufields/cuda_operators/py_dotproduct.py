@@ -30,13 +30,13 @@ dot_product_module = tf.load_op_library("./dot_product.so")
 
 @tf.function
 def wrapper_dot_product(x, y):
-    ret = dot_product_module.dot_product(x, y)
+    ret = dot_product_module.dot_product(x, y, p = PMOD)
     return ret
 
 
 @tf.function
 def wrapper_dot_product_single_batch(x, y):
-    ret = dot_product_module.dot_product_single_batch(x, y)
+    ret = dot_product_module.dot_product_single_batch(x, y, p=PMOD)
     return ret
 
 

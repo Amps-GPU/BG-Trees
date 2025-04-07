@@ -4,17 +4,14 @@
 // CPU specialization of actual computation.
 template <typename T>
 struct myfunctor::InverseFunctor<CPUDevice, T> {
-    void operator()(const CPUDevice &d, const int bs, const T *x, T *out) {
+    void operator()(const CPUDevice &d, const int bs, const int p, const T *x, T *out) {
 
 		// Copied from: https://github.com/GDeLaurentis/linac-dev/blob/master/linac/row_reduce.cu
         
         for (int n = 0; n < bs; n++) {
             T quotient, old_old_r, old_old_s, old_old_t;
-            T b = PMOD;
-
-
             T old_r = x[n];
-            T r = b;
+            T r = (T) p;
             T old_s = 1;
             T s = 0;
             T old_t = 0;
@@ -37,7 +34,7 @@ struct myfunctor::InverseFunctor<CPUDevice, T> {
 
             out[n] = s;
             if (s < 0) {
-                out[n] += PMOD;
+                out[n] += (T) p;
             }
         }
     }
@@ -46,21 +43,23 @@ struct myfunctor::InverseFunctor<CPUDevice, T> {
 // OpKernel definition.
 // template parameter <T> is the datatype of the tensors.
 template <typename Device, typename T>
-InverseOp<Device, T>::InverseOp(OpKernelConstruction* context) : OpKernel(context) {}
+InverseOp<Device, T>::InverseOp(OpKernelConstruction* context) : OpKernel(context) {
+    OP_REQUIRES_OK(context, context->GetAttr("p", &p_));
+}
 
 template <typename Device, typename T>
 void InverseOp<Device, T>::Compute(OpKernelContext* context) {
 
 	const Tensor& input_x = context->input(0);
 	const auto input_data = input_x.flat<T>();
-    const auto batch_s =input_x.NumElements();
+    const auto batch_s = input_x.NumElements();
 
     Tensor* output_tensor = NULL;
     OP_REQUIRES_OK(context, context->allocate_output(0, input_x.shape(), &output_tensor));
 	auto output_data = output_tensor->flat<T>();
 
 	// Submit to the appropiate device
-    myfunctor::InverseFunctor<Device, T>()(context->eigen_device<Device>(), batch_s, input_data.data(), output_data.data());
+    myfunctor::InverseFunctor<Device, T>()(context->eigen_device<Device>(), batch_s, p_, input_data.data(), output_data.data());
 }
 
 // Register the CPU kernels.

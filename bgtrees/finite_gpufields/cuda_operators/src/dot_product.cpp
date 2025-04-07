@@ -5,7 +5,7 @@
 template <typename T, bool singleBatch>
 struct myfunctor::DotProductFunctor<CPUDevice, T, singleBatch> {
     void operator()(const CPUDevice &d, const int bs, const int o1,
-                    const int o2, const int size_i, const T *x, const T *y,
+                    const int o2, const int size_i, const int p, const T *x, const T *y,
                     T *out) {
 
 #ifdef DEBUGVERBOSE
@@ -32,10 +32,8 @@ struct myfunctor::DotProductFunctor<CPUDevice, T, singleBatch> {
                 for (int j = 0; j < o2; j++) {
                     T res = 0;
                     for (int k = 0; k < size_i; k++) {
-                        const T tmp =
-                            (x[i * size_i + k + b_x] * y[k * o2 + j + b_y]) %
-                            PMOD;
-                        res = (res + tmp) % PMOD;
+                        const T tmp = (x[i * size_i + k + b_x] * y[k * o2 + j + b_y]) % p;
+                        res = (res + tmp) % p;
                     }
                     out[i * o2 + j + b_o] = res;
                 }
@@ -47,7 +45,9 @@ struct myfunctor::DotProductFunctor<CPUDevice, T, singleBatch> {
 // OpKernel definition.
 // template parameter <T> is the datatype of the tensors.
 template <typename Device, typename T, bool singleBatch>
-DotProductOp<Device, T, singleBatch>::DotProductOp(OpKernelConstruction* context) : OpKernel(context) {}
+DotProductOp<Device, T, singleBatch>::DotProductOp(OpKernelConstruction* context) : OpKernel(context) {
+    OP_REQUIRES_OK(context, context->GetAttr("p", &p_));
+}
 
 template <typename Device, typename T, bool singleBatch>
 void DotProductOp<Device, T, singleBatch>::Compute(OpKernelContext* context) {
@@ -75,7 +75,7 @@ void DotProductOp<Device, T, singleBatch>::Compute(OpKernelContext* context) {
 	// (optional) check that everything is ok
 	//DCHECK_EQ(run_size, input_x.shape().dim_size(1));
 
-	// Prepare the shape of hte output tensor
+	// Prepare the shape of the output tensor
 	TensorShape output_shape;
 	output_shape.AddDim(batch_size);
 	output_shape.AddDim(outer_x);
@@ -97,6 +97,7 @@ void DotProductOp<Device, T, singleBatch>::Compute(OpKernelContext* context) {
 		static_cast<int>(outer_x),
 		static_cast<int>(outer_y),
 		static_cast<int>(inner_s),
+        static_cast<int>(p_),
 		input_x.flat<T>().data(),
 		input_y.flat<T>().data(),
 		output_tensor->flat<T>().data());

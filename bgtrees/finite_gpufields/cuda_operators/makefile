@@ -32,6 +32,10 @@ src/%.cuo: src/%.cu
 	@echo "[$(NCC)] Compiling cuda kernel..."
 	@$(NCC) $(NCCFLAGS) -c -o $@ $^ $(TF_CFLAGS)
 
+check_all_gpu: inverse.so run run_cpu
+	@CUDA_VISIBLE_DEVICES=0 python check_inverse.py
+	@CUDA_VISIBLE_DEVICES="" python check_inverse.py
+
 .PRECIOUS: src/%.cuo src/%.o %.so
 
 clean:

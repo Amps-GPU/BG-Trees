@@ -9,6 +9,7 @@
 
 REGISTER_OP("DotProduct")
 .Attr("T: {int32, int64}")
+.Attr("p: int")
 .Input("x: T")
 .Input("y: T")
 .Output("out: T")
@@ -36,6 +37,7 @@ REGISTER_OP("DotProduct")
 
 REGISTER_OP("DotProductSingleBatch")
 .Attr("T: {int32, int64}")
+.Attr("p: int")
 .Input("x: T")
 .Input("y: T")
 .Output("out: T")
