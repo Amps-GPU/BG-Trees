@@ -60,7 +60,7 @@ def generate_batch_points(multiplicity=4, dimension=6, batch_size=3, field_type=
         field = Field("mpc", 0, prec)
 
         # Take over the random phase space function
-        def random_ps_function(m, _d, _field, _seed=None):
+        def random_ps_function(m, _d, _field, _seed=None):  # noqa: F811
             """Compute a random ps point using lips.Particles instead of syngular.
             Works only in the specific case of a 4D situation"""
             plist = lips.Particles(max(4, m), real_momenta=mreal, field=field)
