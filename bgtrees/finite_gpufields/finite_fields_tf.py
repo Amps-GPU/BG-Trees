@@ -35,7 +35,7 @@ from .cuda_operators import wrapper_inverse
 def get_imaginary_for(p):
     """Get the value of sqrt(ModP(-1, p))"""
     if p > 2**32:
-        raise ValueError(f"Values of p greater than 2^32 are not supported")
+        raise ValueError("Values of p greater than 2^32 are not supported.")
     modi = finite_field_sqrt(ModP(-1, p))
     if not isinstance(modi, ModP):
         raise ValueError(f"i is not in F({p=})")
