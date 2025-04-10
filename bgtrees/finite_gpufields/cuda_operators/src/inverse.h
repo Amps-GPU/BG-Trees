@@ -2,8 +2,6 @@
 #ifndef KERNEL_dot_product_H_
 #define KERNEL_dot_product_H_
 
-#define PMOD 2147483629
-
 #include "tensorflow/core/framework/tensor.h"
 #include "tensorflow/core/framework/op_kernel.h"
 
@@ -17,6 +15,7 @@ namespace myfunctor {
 	struct InverseFunctor {
 		void operator()(const Device& d, 
                 const int bs,
+                const int p, // size of the finite field
 				const T* x, // input tensor X
 				T* out      // output tensor
 		);
@@ -29,6 +28,8 @@ class InverseOp: public OpKernel {
 public:
 	explicit InverseOp(OpKernelConstruction* context);
 	void Compute(OpKernelContext* context) override;
+private:
+    int p_;
 };
 
 #endif //KERNEL_dot_product_H_

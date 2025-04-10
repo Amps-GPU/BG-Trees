@@ -34,6 +34,8 @@ from .cuda_operators import wrapper_inverse
 @functools.lru_cache
 def get_imaginary_for(p):
     """Get the value of sqrt(ModP(-1, p))"""
+    if p > 2**32:
+        raise ValueError("Values of p greater than 2^32 are not supported.")
     modi = finite_field_sqrt(ModP(-1, p))
     if not isinstance(modi, ModP):
         raise ValueError(f"i is not in F({p=})")
@@ -53,7 +55,7 @@ class FiniteField(experimental.ExtensionType):
             # Then the input n is already a Finite Field
             self.n = n.n
             self.p = n.p
-        # Complex numbers at the moment cannot be compiled
+        # Complex numbers at the moment cannot be directly compiled
         elif tf.executing_eagerly() and np.iscomplex(n).any():
             a = FiniteField(tf.math.real(n), p=p)
             b = FiniteField(tf.math.imag(n), p=p)
@@ -61,6 +63,8 @@ class FiniteField(experimental.ExtensionType):
             self.p = p
         else:
             n = tf.cast(n, dtype=settings.dtype)
+            # Test whether p is in the field
+            _ = get_imaginary_for(p)
             self.p = p
             self.n = tf.math.floormod(n, tf.cast(p, dtype=settings.dtype))
 
